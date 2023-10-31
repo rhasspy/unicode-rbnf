@@ -3,15 +3,31 @@ from bisect import bisect_left
 from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import Enum
-from math import log10
+from math import log, isnan, isinf, modf, floor, ceil
 from pathlib import Path
-from typing import Dict, Final, Iterable, List, Optional
+from typing import Dict, Final, Iterable, List, Optional, Union
 from xml.etree import ElementTree as et
+import logging
+
+
+class RulesetName(str, Enum):
+    """Names of common rulesets."""
+
+    DEFAULT = "spellout-numbering"
+    VERBOSE = "spellout-numbering-verbose"
+    CARDINAL = "spellout-cardinal"
+    CARDINAL_VERBOSE = "spellout-cardinal-verbose"
+    ORDINAL = "spellout-ordinal"
+    ORDINAL_VERBOSE = "spellout-ordinal-verbose"
+    YEAR = "spellout-numbering-year"
+
 
 DEFAULT_LANGUAGE: Final = "en"
-DEFAULT_RULESET_NAME: Final = "spellout-numbering"
+DEFAULT_TOLERANCE: Final = 1e-8
+SKIP_RULESETS: Final = {"lenient-parse"}
 
 _LANG_DIR = Path(__file__).parent / "rbnf"
+_LOGGER = logging.getLogger()
 
 
 class RbnfRulePart(ABC):
@@ -76,20 +92,56 @@ class ParseState(str, Enum):
     REPLACE_RULESET_NAME = "replace_ruleset_name"
 
 
+class RbnfSpecialRule(str, Enum):
+    """Special rule types"""
+
+    NEGATIVE_NUMBER = "negative_number"
+    """The rule is a negative-number rule (-x)."""
+
+    NOT_A_NUMBER = "not_a_number"
+    """The rule for an IEEE 754 NaN (NaN)."""
+
+    INFINITY = "infinity"
+    """The rule for infinity (Inf)."""
+
+    IMPROPER_FRACTION = "improper_fraction"
+    """The rule for improper fractions (x.x)"""
+
+
 @dataclass
 class RbnfRule:
     """Parsed rbnf rule."""
 
-    value: int
+    value: Union[int, RbnfSpecialRule]
     """Numeric lookup value for rule."""
 
     parts: List[RbnfRulePart] = field(default_factory=list)
     """Parts of rule in order to be processed."""
 
+    radix: int = 10
+    """Radix used when calculating divisor."""
+
     @staticmethod
-    def parse(value: int, text: str) -> "RbnfRule":
+    def parse(value_str: str, text: str, radix: int = 10) -> "Optional[RbnfRule]":
         """Parse RBNF rule for a value."""
-        rule = RbnfRule(value=value)
+        # Handle special rules
+        if value_str == "-x":
+            rule = RbnfRule(value=RbnfSpecialRule.NEGATIVE_NUMBER)
+        elif value_str == "x.x":
+            rule = RbnfRule(value=RbnfSpecialRule.IMPROPER_FRACTION)
+        elif value_str == "NaN":
+            rule = RbnfRule(value=RbnfSpecialRule.NOT_A_NUMBER)
+        elif value_str == "Inf":
+            rule = RbnfRule(value=RbnfSpecialRule.INFINITY)
+        else:
+            try:
+                rule = RbnfRule(value=int(value_str), radix=radix)
+            except ValueError:
+                _LOGGER.error(
+                    "Unrecognized special rule: value=%s, text=%s", value_str, text
+                )
+                return None
+
         state = ParseState.TEXT
         part: Optional[RbnfRulePart] = None
         is_sub_optional = False
@@ -97,7 +149,12 @@ class RbnfRule:
 
         for c in text:
             if c == ";":
+                # End of rule text
                 break
+
+            if c == "'":
+                # Placeholder
+                continue
 
             if c in (">", "→"):
                 # Divide the number by the rule's divisor and format the remainder
@@ -138,7 +195,10 @@ class RbnfRule:
                     assert isinstance(part, SubRulePart)
                     state = ParseState.SUB_RULESET_NAME
                     part.ruleset_name = ""
-                elif state == ParseState.REPLACE_RULESET_NAME:
+                elif state in {
+                    ParseState.REPLACE_RULESET_NAME,
+                    ParseState.SUB_RULESET_NAME,
+                }:
                     pass
                 else:
                     raise ValueError(f"Got {c} in {state}")
@@ -209,6 +269,9 @@ class RbnfRuleSet:
     numeric_rules: Dict[int, RbnfRule] = field(default_factory=dict)
     """Rules keyed by lookup number."""
 
+    special_rules: Dict[RbnfSpecialRule, RbnfRule] = field(default_factory=dict)
+    """Rules keyed by special rule type."""
+
     _sorted_numbers: Optional[List[int]] = field(default=None)
     """Sorted list of numeric_rules keys (updated on demand)."""
 
@@ -216,8 +279,26 @@ class RbnfRuleSet:
         """Force update to sorted key list."""
         self._sorted_numbers = sorted(self.numeric_rules.keys())
 
-    def find_rule(self, number: int) -> Optional[RbnfRule]:
+    def find_rule(
+        self, number: float, tolerance: float = DEFAULT_TOLERANCE
+    ) -> Optional[RbnfRule]:
         """Look up closest rule by number."""
+
+        # Special rules
+        if number < 0:
+            return self.special_rules.get(RbnfSpecialRule.NEGATIVE_NUMBER)
+
+        if isnan(number):
+            return self.special_rules.get(RbnfSpecialRule.NOT_A_NUMBER)
+
+        if isinf(number):
+            return self.special_rules.get(RbnfSpecialRule.INFINITY)
+
+        if (number - int(number)) > DEFAULT_TOLERANCE:
+            return self.special_rules.get(RbnfSpecialRule.IMPROPER_FRACTION)
+
+        # Numeric rules
+        number_int = int(number)
         if (self._sorted_numbers is None) or (
             len(self._sorted_numbers) != len(self.numeric_rules)
         ):
@@ -226,7 +307,7 @@ class RbnfRuleSet:
         assert self._sorted_numbers is not None
 
         # Find index of place where number would be inserted
-        index = bisect_left(self._sorted_numbers, number)
+        index = bisect_left(self._sorted_numbers, number_int)
         num_rules = len(self._sorted_numbers)
 
         if index >= num_rules:
@@ -237,7 +318,7 @@ class RbnfRuleSet:
             index = 0
 
         rule_number = self._sorted_numbers[index]
-        if number < rule_number:
+        if number_int < rule_number:
             # Not an exact match, use one rule down
             index = max(0, index - 1)
             rule_number = self._sorted_numbers[index]
@@ -271,22 +352,31 @@ class RbnfEngine:
 
     def add_rule(
         self,
-        value: int,
+        value_str: str,
         rule_text: str,
+        radix: int = 10,
         ruleset_name: Optional[str] = None,
         language: Optional[str] = None,
-    ) -> RbnfRule:
+    ) -> Optional[RbnfRule]:
         """Manually add a rule to the engine."""
         language = language or self.language or DEFAULT_LANGUAGE
-        ruleset_name = ruleset_name or DEFAULT_RULESET_NAME
+        ruleset_name = ruleset_name or RulesetName.DEFAULT
 
         ruleset = self.rulesets[language].get(ruleset_name)
         if ruleset is None:
             ruleset = RbnfRuleSet(name=ruleset_name)
             self.rulesets[language][ruleset_name] = ruleset
 
-        rule = RbnfRule.parse(value, rule_text)
-        ruleset.numeric_rules[value] = rule
+        rule = RbnfRule.parse(value_str, rule_text, radix=radix)
+        if rule is None:
+            return rule
+
+        if isinstance(rule.value, RbnfSpecialRule):
+            # Special rule
+            ruleset.special_rules[rule.value] = rule
+        else:
+            # Numeric rule
+            ruleset.numeric_rules[rule.value] = rule
 
         return rule
 
@@ -299,58 +389,84 @@ class RbnfEngine:
             )
 
         for group_elem in root.findall("rbnf//ruleset"):
-            ruleset = RbnfRuleSet(name=group_elem.attrib["type"])
+            ruleset_name = group_elem.attrib["type"]
+            if ruleset_name in SKIP_RULESETS:
+                _LOGGER.debug("Skipping ruleset: %s", ruleset_name)
+                continue
+
             for rule_elem in group_elem.findall("rbnfrule"):
                 if not rule_elem.text:
                     continue
 
-                value = rule_elem.attrib["value"]
-                try:
-                    value_int = int(value)
-                    ruleset.numeric_rules[value_int] = RbnfRule.parse(
-                        value_int, rule_elem.text
-                    )
-                except ValueError:
-                    # Ignore for now
-                    pass
+                value_str = rule_elem.attrib["value"]
+                radix = int(rule_elem.attrib.get("radix", 10))
 
-            self.rulesets[language][ruleset.name] = ruleset
+                self.add_rule(
+                    value_str,
+                    rule_elem.text,
+                    radix=radix,
+                    ruleset_name=ruleset_name,
+                    language=language,
+                )
 
     def format_number(
         self,
-        number: int,
+        number: float,
         ruleset_name: Optional[str] = None,
+        radix: Optional[int] = None,
         language: Optional[str] = None,
+        tolerance: float = DEFAULT_TOLERANCE,
     ) -> str:
         """Format a number using loaded rulesets."""
         return "".join(
             self.iter_format_number(
-                number, ruleset_name=ruleset_name, language=language
+                number,
+                ruleset_name=ruleset_name,
+                language=language,
+                tolerance=tolerance,
             )
         )
 
     def iter_format_number(
         self,
-        number: int,
+        number: float,
         ruleset_name: Optional[str] = None,
+        radix: Optional[int] = None,
         language: Optional[str] = None,
+        tolerance: float = DEFAULT_TOLERANCE,
     ) -> Iterable[str]:
         """Format a number using loaded rulesets (generator)."""
         language = language or self.language or DEFAULT_LANGUAGE
-        ruleset_name = ruleset_name or DEFAULT_RULESET_NAME
+        ruleset_name = ruleset_name or RulesetName.DEFAULT
 
         ruleset = self.rulesets[language].get(ruleset_name)
         if ruleset is None:
             raise ValueError(f"No ruleset: {ruleset_name}")
 
-        rule = ruleset.find_rule(number)
+        rule = ruleset.find_rule(number, tolerance=tolerance)
         if rule is None:
             raise ValueError(f"No rule for {number} in {ruleset_name}")
 
-        if rule.value > 0:
-            q, r = divmod(number, 10 ** int(log10(rule.value)))
-        else:
-            q, r = 0, 0
+        q: int = 0
+        r: int = 0
+
+        if isinstance(rule.value, RbnfSpecialRule):
+            if rule.value == RbnfSpecialRule.NEGATIVE_NUMBER:
+                r = int(-number)
+            elif rule.value == RbnfSpecialRule.IMPROPER_FRACTION:
+                frac_part, int_part = modf(number)
+                q = int(int_part)
+                r = fractional_to_int(frac_part * 10, tolerance=tolerance)
+            elif rule.value in {RbnfSpecialRule.NOT_A_NUMBER, RbnfSpecialRule.INFINITY}:
+                # Should just be text substitutions
+                pass
+            else:
+                _LOGGER.warning("Unhandled special rule: %s", rule.value)
+        elif rule.value > 0:
+            power_below = rule.radix ** int(floor(log(rule.value, rule.radix)))
+            power_above = rule.radix ** int(ceil(log(rule.value, rule.radix)))
+            divisor = power_above if (number >= power_above) else power_below
+            q, r = divmod(number, divisor)
 
         for part in rule.parts:
             if isinstance(part, TextRulePart):
@@ -377,3 +493,13 @@ class RbnfEngine:
                 yield from self.iter_format_number(
                     number, ruleset_name=part.ruleset_name
                 )
+
+
+def fractional_to_int(frac_part: float, tolerance: float = DEFAULT_TOLERANCE) -> int:
+    """Convert fractional part to int like 0.14000000000000012 -> 14"""
+    frac_int = int(frac_part)
+
+    if (frac_part - frac_int) > tolerance:
+        return fractional_to_int(frac_part * 10, tolerance=tolerance)
+
+    return frac_int

@@ -7,7 +7,7 @@ For terms of use, see http://www.unicode.org/copyright.html
 -->
 <ldml>
     <identity>
-        <version number="$Revision: 12733 $"/>
+        <version number="$Revision$"/>
         <language type="es"/>
     </identity>
     <rbnf>
@@ -306,6 +306,14 @@ For terms of use, see http://www.unicode.org/copyright.html
             <ruleset type="digits-ordinal-feminine">
                 <rbnfrule value="-x">−→→;</rbnfrule>
                 <rbnfrule value="0">=#,##0=.ª;</rbnfrule>
+            </ruleset>
+            <ruleset type="digits-ordinal-masculine-plural">
+                <rbnfrule value="-x">−→→;</rbnfrule>
+                <rbnfrule value="0">=#,##0=.ᵒˢ;</rbnfrule>
+            </ruleset>
+            <ruleset type="digits-ordinal-feminine-plural">
+                <rbnfrule value="-x">−→→;</rbnfrule>
+                <rbnfrule value="0">=#,##0=.ᵃˢ;</rbnfrule>
             </ruleset>
             <ruleset type="digits-ordinal">
                 <rbnfrule value="0">=%digits-ordinal-masculine=;</rbnfrule>

@@ -7,7 +7,7 @@ For terms of use, see http://www.unicode.org/copyright.html
 -->
 <ldml>
     <identity>
-        <version number="$Revision: 13062 $"/>
+        <version number="$Revision$"/>
         <language type="uk"/>
     </identity>
     <rbnf>
@@ -127,6 +127,12 @@ For terms of use, see http://www.unicode.org/copyright.html
                 <rbnfrule value="1000000000000">←%spellout-cardinal-masculine← $(cardinal,one{більйон}few{більйони}other{більйонів})$[ →→];</rbnfrule>
                 <rbnfrule value="1000000000000000">←%spellout-cardinal-masculine← $(cardinal,one{більярд}few{більярди}other{більярдів})$[ →→];</rbnfrule>
                 <rbnfrule value="1000000000000000000">=#,##0=;</rbnfrule>
+            </ruleset>
+        </rulesetGrouping>
+        <rulesetGrouping type="OrdinalRules">
+            <ruleset type="digits-ordinal">
+                <rbnfrule value="-x">−→→;</rbnfrule>
+                <rbnfrule value="0">=#,##0=;</rbnfrule>
             </ruleset>
         </rulesetGrouping>
     </rbnf>

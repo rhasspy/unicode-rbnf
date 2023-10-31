@@ -4,7 +4,7 @@ from unicode_rbnf.engine import (
     SubRulePart,
     SubType,
     RbnfEngine,
-    DEFAULT_RULESET_NAME,
+    RulesetName,
     DEFAULT_LANGUAGE,
 )
 
@@ -43,7 +43,7 @@ def test_find_rule():
     engine.add_rule(20, "twenty[-→→];")
     engine.add_rule(100, "←← hundred[ →→];")
 
-    ruleset = engine.rulesets[DEFAULT_LANGUAGE][DEFAULT_RULESET_NAME]
+    ruleset = engine.rulesets[DEFAULT_LANGUAGE][RulesetName.DEFAULT]
 
     rule_2 = ruleset.find_rule(2)
     assert rule_2 is not None
