@@ -1,1 +1,2 @@
+include LICENSE.md
 include unicode_rbnf/rbnf/*.xml
