@@ -1,13 +1,13 @@
+import logging
 from abc import ABC
 from bisect import bisect_left
 from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import Enum
-from math import log, isnan, isinf, modf, floor, ceil
+from math import ceil, floor, isinf, isnan, log, modf
 from pathlib import Path
 from typing import Dict, Final, Iterable, List, Optional, Union
 from xml.etree import ElementTree as et
-import logging
 
 
 class RulesetName(str, Enum):

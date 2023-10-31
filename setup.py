@@ -13,7 +13,7 @@ data_files = list((module_dir / "rbnf").glob("*.xml"))
 
 setup(
     name=module_name,
-    version="0.0.1",
+    version="1.0.0",
     description="Rule-based number formatting using Unicode CLDR data",
     url="http://github.com/rhasspy/unicode",
     author="Michael Hansen",

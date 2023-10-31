@@ -36,3 +36,10 @@ def test_english():
 
     # Ordinals
     assert engine.format_number(99, ruleset_name=RulesetName.ORDINAL) == "ninety-ninth"
+    assert engine.format_number(11, ruleset_name=RulesetName.ORDINAL) == "eleventh"
+
+    # Years
+    assert (
+        engine.format_number(1999, ruleset_name=RulesetName.YEAR)
+        == "nineteen ninety-nine"
+    )
