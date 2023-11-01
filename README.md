@@ -44,5 +44,5 @@ Not [all features](https://unicode-org.github.io/icu-docs/apidoc/released/icu4c/
 Some features that will need to be added eventually:
 
 * Proper fraction rules (`0.x`)
-* Preceding eeminder substitution (`>>>` or `→→→`)
+* Preceding reminder substitution (`>>>` or `→→→`)
 * Number format strings (`==`)
