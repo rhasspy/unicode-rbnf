@@ -3,6 +3,7 @@ from abc import ABC
 from bisect import bisect_left
 from collections import defaultdict
 from dataclasses import dataclass, field
+from decimal import Decimal
 from enum import Enum
 from math import ceil, floor, isinf, isnan, log, modf
 from pathlib import Path
@@ -13,7 +14,7 @@ from xml.etree import ElementTree as et
 class RulesetName(str, Enum):
     """Names of common rulesets."""
 
-    DEFAULT = "spellout-numbering"
+    NUMBERING = "spellout-numbering"
     VERBOSE = "spellout-numbering-verbose"
     CARDINAL = "spellout-cardinal"
     CARDINAL_VERBOSE = "spellout-cardinal-verbose"
@@ -22,6 +23,10 @@ class RulesetName(str, Enum):
     YEAR = "spellout-numbering-year"
 
 
+DEFAULT_RULESET = RulesetName.NUMBERING
+DEFAULT_RULESET_FOR_LANGUAGE: Final = {
+    "en": RulesetName.CARDINAL,
+}
 DEFAULT_LANGUAGE: Final = "en"
 DEFAULT_TOLERANCE: Final = 1e-8
 SKIP_RULESETS: Final = {"lenient-parse"}
@@ -127,7 +132,7 @@ class RbnfRule:
         # Handle special rules
         if value_str == "-x":
             rule = RbnfRule(value=RbnfSpecialRule.NEGATIVE_NUMBER)
-        elif value_str == "x.x":
+        elif value_str in ("x.x", "x,x"):
             rule = RbnfRule(value=RbnfSpecialRule.IMPROPER_FRACTION)
         elif value_str == "NaN":
             rule = RbnfRule(value=RbnfSpecialRule.NOT_A_NUMBER)
@@ -137,7 +142,7 @@ class RbnfRule:
             try:
                 rule = RbnfRule(value=int(value_str), radix=radix)
             except ValueError:
-                _LOGGER.error(
+                _LOGGER.debug(
                     "Unrecognized special rule: value=%s, text=%s", value_str, text
                 )
                 return None
@@ -294,7 +299,7 @@ class RbnfRuleSet:
         if isinf(number):
             return self.special_rules.get(RbnfSpecialRule.INFINITY)
 
-        if (number - int(number)) > DEFAULT_TOLERANCE:
+        if abs(number - round(number)) > DEFAULT_TOLERANCE:
             return self.special_rules.get(RbnfSpecialRule.IMPROPER_FRACTION)
 
         # Numeric rules
@@ -337,6 +342,11 @@ class RbnfEngine:
         self.rulesets: Dict[str, Dict[str, RbnfRuleSet]] = defaultdict(dict)
 
     @staticmethod
+    def get_supported_languages() -> List[str]:
+        """Return a list of supported language codes."""
+        return sorted([f.stem for f in _LANG_DIR.glob("*.xml")])
+
+    @staticmethod
     def for_language(language: str) -> "RbnfEngine":
         """Load XML rules for a language and construct an engine."""
         xml_path = _LANG_DIR / f"{language}.xml"
@@ -360,8 +370,11 @@ class RbnfEngine:
     ) -> Optional[RbnfRule]:
         """Manually add a rule to the engine."""
         language = language or self.language or DEFAULT_LANGUAGE
-        ruleset_name = ruleset_name or RulesetName.DEFAULT
+        ruleset_name = ruleset_name or DEFAULT_RULESET_FOR_LANGUAGE.get(
+            language, DEFAULT_RULESET
+        )
 
+        assert ruleset_name is not None
         ruleset = self.rulesets[language].get(ruleset_name)
         if ruleset is None:
             ruleset = RbnfRuleSet(name=ruleset_name)
@@ -411,7 +424,7 @@ class RbnfEngine:
 
     def format_number(
         self,
-        number: float,
+        number: Union[int, float, str, Decimal],
         ruleset_name: Optional[str] = None,
         radix: Optional[int] = None,
         language: Optional[str] = None,
@@ -429,7 +442,7 @@ class RbnfEngine:
 
     def iter_format_number(
         self,
-        number: float,
+        number: Union[int, float, str, Decimal],
         ruleset_name: Optional[str] = None,
         radix: Optional[int] = None,
         language: Optional[str] = None,
@@ -437,13 +450,19 @@ class RbnfEngine:
     ) -> Iterable[str]:
         """Format a number using loaded rulesets (generator)."""
         language = language or self.language or DEFAULT_LANGUAGE
-        ruleset_name = ruleset_name or RulesetName.DEFAULT
+        ruleset_name = ruleset_name or DEFAULT_RULESET_FOR_LANGUAGE.get(
+            language, DEFAULT_RULESET
+        )
 
+        if isinstance(number, str):
+            number = Decimal(number)
+
+        assert ruleset_name is not None
         ruleset = self.rulesets[language].get(ruleset_name)
         if ruleset is None:
             raise ValueError(f"No ruleset: {ruleset_name}")
 
-        rule = ruleset.find_rule(number, tolerance=tolerance)
+        rule = ruleset.find_rule(float(number), tolerance=tolerance)
         if rule is None:
             raise ValueError(f"No rule for {number} in {ruleset_name}")
 
@@ -497,9 +516,9 @@ class RbnfEngine:
 
 def fractional_to_int(frac_part: float, tolerance: float = DEFAULT_TOLERANCE) -> int:
     """Convert fractional part to int like 0.14000000000000012 -> 14"""
-    frac_int = int(frac_part)
+    frac_int = round(frac_part)
 
-    if (frac_part - frac_int) > tolerance:
+    if abs(frac_part - frac_int) > tolerance:
         return fractional_to_int(frac_part * 10, tolerance=tolerance)
 
     return frac_int

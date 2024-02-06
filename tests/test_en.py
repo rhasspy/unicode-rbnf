@@ -26,12 +26,16 @@ def test_english():
     # Special rules
     assert engine.format_number(-1) == "minus one"
     assert engine.format_number(float("nan")) == "not a number"
-    assert engine.format_number(float("inf")) == "infinity"
+    assert engine.format_number(float("inf")) == "infinite"
 
     # Fractions
     assert (
         engine.format_number(3.14, ruleset_name=RulesetName.CARDINAL)
         == "three point fourteen"
+    )
+    assert (
+        engine.format_number("5.3", ruleset_name=RulesetName.CARDINAL)
+        == "five point three"
     )
 
     # Ordinals

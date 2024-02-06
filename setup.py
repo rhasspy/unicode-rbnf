@@ -9,11 +9,15 @@ this_dir = Path(__file__).parent
 module_dir = this_dir / module_name
 data_files = list((module_dir / "rbnf").glob("*.xml"))
 
+version_path = module_dir / "VERSION"
+data_files.append(version_path)
+version = version_path.read_text(encoding="utf-8").strip()
+
 # -----------------------------------------------------------------------------
 
 setup(
     name=module_name,
-    version="1.0.0",
+    version=version,
     description="Rule-based number formatting using Unicode CLDR data",
     url="http://github.com/rhasspy/unicode",
     author="Michael Hansen",
