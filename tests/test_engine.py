@@ -19,7 +19,7 @@ def test_parse_sub():
         parts=[
             SubRulePart(SubType.QUOTIENT),
             TextRulePart(" hundred"),
-            SubRulePart(SubType.REMAINER, is_optional=True, text_before=" "),
+            SubRulePart(SubType.REMAINDER, is_optional=True, text_before=" "),
         ],
     )
 
@@ -32,7 +32,7 @@ def test_parse_ruleset_name():
         parts=[
             SubRulePart(SubType.QUOTIENT, ruleset_name="spellout-cardinal-masculine"),
             TextRulePart("­hundert"),
-            SubRulePart(SubType.REMAINER, is_optional=True, text_before="­"),
+            SubRulePart(SubType.REMAINDER, is_optional=True, text_before="­"),
         ],
     )
 

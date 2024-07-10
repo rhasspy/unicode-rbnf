@@ -50,7 +50,7 @@ class TextRulePart(RbnfRulePart):
 class SubType(str, Enum):
     """Type of substitution."""
 
-    REMAINER = "remainder"
+    REMAINDER = "remainder"
     """Use remainder for rule value."""
 
     QUOTIENT = "quotient"
@@ -91,7 +91,7 @@ class ParseState(str, Enum):
     TEXT = "text"
     SUB_OPTIONAL_BEFORE = "optional_before"
     SUB_OPTIONAL_AFTER = "optional_after"
-    SUB_REMAINER = "remainder"
+    SUB_REMAINDER = "remainder"
     SUB_QUOTIENT = "quotient"
     SUB_RULESET_NAME = "sub_ruleset_name"
     REPLACE_RULESET_NAME = "replace_ruleset_name"
@@ -164,15 +164,15 @@ class RbnfRule:
             if c in (">", "→"):
                 # Divide the number by the rule's divisor and format the remainder
                 if state in {ParseState.TEXT, ParseState.SUB_OPTIONAL_BEFORE}:
-                    state = ParseState.SUB_REMAINER
+                    state = ParseState.SUB_REMAINDER
                     part = SubRulePart(
-                        SubType.REMAINER,
+                        SubType.REMAINDER,
                         is_optional=is_sub_optional,
                         text_before=sub_text_before,
                     )
                     rule.parts.append(part)
                     sub_text_before = ""
-                elif state in {ParseState.SUB_REMAINER, ParseState.SUB_RULESET_NAME}:
+                elif state in {ParseState.SUB_REMAINDER, ParseState.SUB_RULESET_NAME}:
                     if is_sub_optional:
                         state = ParseState.SUB_OPTIONAL_AFTER
                     else:
@@ -196,7 +196,7 @@ class RbnfRule:
                     raise ValueError(f"Got {c} in {state}")
             elif c == "%":
                 # =%rule_name= replacement
-                if state in {ParseState.SUB_QUOTIENT, ParseState.SUB_REMAINER}:
+                if state in {ParseState.SUB_QUOTIENT, ParseState.SUB_REMAINDER}:
                     assert isinstance(part, SubRulePart)
                     state = ParseState.SUB_RULESET_NAME
                     part.ruleset_name = ""
@@ -493,6 +493,10 @@ class RbnfEngine:
                     yield part.text
             elif isinstance(part, SubRulePart):
                 if (part.type == SubType.QUOTIENT) and (q > 0):
+                    if (q == 0) and (part.ruleset_name is None):
+                        # Rulesets can use quotients of zero
+                        continue
+
                     if part.text_before:
                         yield part.text_before
                     yield from self.iter_format_number(
@@ -500,7 +504,11 @@ class RbnfEngine:
                     )
                     if part.text_after:
                         yield part.text_after
-                elif (part.type == SubType.REMAINER) and (r > 0):
+                elif part.type == SubType.REMAINDER:
+                    if (r == 0) and (part.ruleset_name is None):
+                        # Rulesets can use remainders of zero
+                        continue
+
                     if part.text_before:
                         yield part.text_before
                     yield from self.iter_format_number(

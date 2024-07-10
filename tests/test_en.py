@@ -3,6 +3,7 @@ from unicode_rbnf import RbnfEngine, RulesetName
 
 def test_english():
     engine = RbnfEngine.for_language("en")
+
     assert engine.format_number(7) == "seven"
     assert engine.format_number(15) == "fifteen"
     assert engine.format_number(42) == "forty-two"
@@ -39,6 +40,8 @@ def test_english():
     )
 
     # Ordinals
+    assert engine.format_number(20, ruleset_name=RulesetName.ORDINAL) == "twentieth"
+    assert engine.format_number(30, ruleset_name=RulesetName.ORDINAL) == "thirtieth"
     assert engine.format_number(99, ruleset_name=RulesetName.ORDINAL) == "ninety-ninth"
     assert engine.format_number(11, ruleset_name=RulesetName.ORDINAL) == "eleventh"
 
