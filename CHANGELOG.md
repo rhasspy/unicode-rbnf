@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0
+
+- Fix zero remainder rules
+
 ## 1.1.0
 
 - Add `get_supported_languages` method to engine
