@@ -285,19 +285,22 @@ class RbnfRuleSet:
         self._sorted_numbers = sorted(self.numeric_rules.keys())
 
     def find_rule(
-        self, number: float, tolerance: float = DEFAULT_TOLERANCE
+        self,
+        number: float,
+        tolerance: float = DEFAULT_TOLERANCE,
+        rulesets: Optional[Dict[str, "RbnfRuleSet"]] = None,
     ) -> Optional[RbnfRule]:
         """Look up closest rule by number."""
 
         # Special rules
         if number < 0:
-            return self.special_rules.get(RbnfSpecialRule.NEGATIVE_NUMBER)
+            return self.find_special_rule(RbnfSpecialRule.NEGATIVE_NUMBER, rulesets)
 
         if isnan(number):
-            return self.special_rules.get(RbnfSpecialRule.NOT_A_NUMBER)
+            return self.find_special_rule(RbnfSpecialRule.NOT_A_NUMBER, rulesets)
 
         if isinf(number):
-            return self.special_rules.get(RbnfSpecialRule.INFINITY)
+            return self.find_special_rule(RbnfSpecialRule.INFINITY, rulesets)
 
         if abs(number - round(number)) > DEFAULT_TOLERANCE:
             return self.special_rules.get(RbnfSpecialRule.IMPROPER_FRACTION)
@@ -329,6 +332,35 @@ class RbnfRuleSet:
             rule_number = self._sorted_numbers[index]
 
         return self.numeric_rules.get(rule_number)
+
+    def find_special_rule(
+        self,
+        special_rule: RbnfSpecialRule,
+        rulesets: Optional[Dict[str, "RbnfRuleSet"]] = None,
+    ) -> Optional[RbnfRule]:
+        """Find special rule in this ruleset or in its 0-rule."""
+        rule = self.special_rules.get(special_rule)
+        if rule is not None:
+            return rule
+
+        if rulesets is None:
+            # Can't resolve replacement rule
+            return None
+
+        # Find the default replacement rule
+        zero_rule = self.numeric_rules.get(0)
+        if (
+            (zero_rule is not None)
+            and zero_rule.parts
+            and isinstance(zero_rule.parts[0], ReplaceRulePart)
+        ):
+            replace_part: ReplaceRulePart = zero_rule.parts[0]
+            replace_rule = rulesets.get(replace_part.ruleset_name)
+            if replace_rule is not None:
+                # Try to resolve the special rule in the replacement
+                return replace_rule.find_special_rule(special_rule, rulesets)
+
+        return None
 
 
 class RbnfEngine:
@@ -462,7 +494,9 @@ class RbnfEngine:
         if ruleset is None:
             raise ValueError(f"No ruleset: {ruleset_name}")
 
-        rule = ruleset.find_rule(float(number), tolerance=tolerance)
+        rule = ruleset.find_rule(
+            float(number), tolerance=tolerance, rulesets=self.rulesets[language]
+        )
         if rule is None:
             raise ValueError(f"No rule for {number} in {ruleset_name}")
 
