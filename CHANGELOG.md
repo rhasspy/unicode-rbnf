@@ -2,7 +2,7 @@
 
 ## 1.3.0
 
-- Remove soft hypens by default (U+00AD)
+- Remove soft hyphens by default (U+00AD)
 - Search for special rules in replacement rules
 
 ## 1.2.0
