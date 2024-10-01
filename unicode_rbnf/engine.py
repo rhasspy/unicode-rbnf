@@ -4,7 +4,7 @@ from bisect import bisect_left
 from collections import defaultdict
 from dataclasses import dataclass, field
 from decimal import Decimal
-from enum import Enum
+from enum import Enum, IntFlag
 from math import ceil, floor, isinf, isnan, log, modf
 from pathlib import Path
 from typing import Dict, Final, Iterable, List, Optional, Union
@@ -21,6 +21,12 @@ class RulesetName(str, Enum):
     ORDINAL = "spellout-ordinal"
     ORDINAL_VERBOSE = "spellout-ordinal-verbose"
     YEAR = "spellout-numbering-year"
+
+
+class FormatOptions(IntFlag):
+    """Extra options for formatting."""
+
+    PRESERVE_SOFT_HYPENS = 1
 
 
 DEFAULT_RULESET = RulesetName.NUMBERING
@@ -461,9 +467,13 @@ class RbnfEngine:
         radix: Optional[int] = None,
         language: Optional[str] = None,
         tolerance: float = DEFAULT_TOLERANCE,
+        options: Optional[FormatOptions] = None,
     ) -> str:
         """Format a number using loaded rulesets."""
-        return "".join(
+        if options is None:
+            options = FormatOptions(0)
+
+        number_str = "".join(
             self.iter_format_number(
                 number,
                 ruleset_name=ruleset_name,
@@ -471,6 +481,12 @@ class RbnfEngine:
                 tolerance=tolerance,
             )
         )
+
+        if not (options & FormatOptions.PRESERVE_SOFT_HYPENS):
+            # https://en.wikipedia.org/wiki/Soft_hyphen
+            number_str = number_str.replace("\xad", "")
+
+        return number_str
 
     def iter_format_number(
         self,
@@ -534,7 +550,10 @@ class RbnfEngine:
                     if part.text_before:
                         yield part.text_before
                     yield from self.iter_format_number(
-                        q, ruleset_name=part.ruleset_name or ruleset_name
+                        q,
+                        ruleset_name=part.ruleset_name or ruleset_name,
+                        language=language,
+                        tolerance=tolerance,
                     )
                     if part.text_after:
                         yield part.text_after
@@ -546,13 +565,19 @@ class RbnfEngine:
                     if part.text_before:
                         yield part.text_before
                     yield from self.iter_format_number(
-                        r, ruleset_name=part.ruleset_name or ruleset_name
+                        r,
+                        ruleset_name=part.ruleset_name or ruleset_name,
+                        language=language,
+                        tolerance=tolerance,
                     )
                     if part.text_after:
                         yield part.text_after
             elif isinstance(part, ReplaceRulePart):
                 yield from self.iter_format_number(
-                    number, ruleset_name=part.ruleset_name
+                    number,
+                    ruleset_name=part.ruleset_name,
+                    language=language,
+                    tolerance=tolerance,
                 )
 
 
