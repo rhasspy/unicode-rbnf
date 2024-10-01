@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.0
+
+- Remove soft hypens by default (U+00AD)
+- Search for special rules in replacement rules
+
 ## 1.2.0
 
 - Fix zero remainder rules
