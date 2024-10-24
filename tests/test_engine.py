@@ -4,8 +4,7 @@ from unicode_rbnf.engine import (
     SubRulePart,
     SubType,
     RbnfEngine,
-    RulesetName,
-    DEFAULT_LANGUAGE,
+    FormatResult,
 )
 
 
@@ -38,12 +37,12 @@ def test_parse_ruleset_name():
 
 
 def test_find_rule():
-    engine = RbnfEngine()
-    engine.add_rule(2, "two;")
-    engine.add_rule(20, "twenty[-→→];")
-    engine.add_rule(100, "←← hundred[ →→];")
+    engine = RbnfEngine("en")
+    engine.add_rule(2, "two;", "spellout-numbering")
+    engine.add_rule(20, "twenty[-→→];", "spellout-numbering")
+    engine.add_rule(100, "←← hundred[ →→];", "spellout-numbering")
 
-    ruleset = engine.rulesets[DEFAULT_LANGUAGE][RulesetName.CARDINAL]
+    ruleset = engine.rulesets["spellout-numbering"]
 
     rule_2 = ruleset.find_rule(2)
     assert rule_2 is not None
@@ -59,18 +58,23 @@ def test_find_rule():
 
 
 def test_format_number():
-    engine = RbnfEngine()
-    engine.add_rule(2, "two;")
-    engine.add_rule(20, "twenty[-→→];")
-    engine.add_rule(100, "←← hundred[ →→];")
+    engine = RbnfEngine("en")
+    engine.add_rule(2, "two;", "spellout-cardinal")
+    engine.add_rule(20, "twenty[-→→];", "spellout-cardinal")
+    engine.add_rule(100, "←← hundred[ →→];", "spellout-cardinal")
 
-    assert engine.format_number(222) == "two hundred twenty-two"
+    assert engine.format_number(222) == FormatResult(
+        text="two hundred twenty-two",
+        text_by_ruleset={"spellout-cardinal": "two hundred twenty-two"},
+    )
 
 
 def test_zero_rules():
-    engine = RbnfEngine()
-    engine.add_rule(0, "abc=%ruleset_2=def;", ruleset_name="ruleset_1")
-    engine.add_rule(0, " efg=%ruleset_3= hij;", ruleset_name="ruleset_2")
-    engine.add_rule(1, "one;", ruleset_name="ruleset_3")
+    engine = RbnfEngine("en")
+    engine.add_rule(0, "abc=%ruleset_2=def;", "ruleset_1")
+    engine.add_rule(0, " efg=%ruleset_3= hij;", "ruleset_2")
+    engine.add_rule(1, "one;", "ruleset_3")
 
-    assert engine.format_number(1, ruleset_name="ruleset_1") == "abc efgone hijdef"
+    assert (
+        engine.format_number(1, ruleset_names=["ruleset_1"]).text == "abc efgone hijdef"
+    )

@@ -8,18 +8,48 @@ This lets you spell out numbers for a large number of locales:
 from unicode_rbnf import RbnfEngine
 
 engine = RbnfEngine.for_language("en")
-assert engine.format_number(1234) == "one thousand two hundred thirty-four"
+assert engine.format_number(1234).text == "one thousand two hundred thirty-four"
 ```
 
-Depending on the locale, different rulesets are supported as well:
+Different formatting purposes are supported as well, depending on the locale:
 
 ``` python
-from unicode_rbnf import RbnfEngine, RulesetName
+from unicode_rbnf import RbnfEngine, FormatPurpose
 
 engine = RbnfEngine.for_language("en")
-assert engine.format_number(1999, RulesetName.YEAR) == "nineteen ninety-nine"
-assert engine.format_number(11, RulesetName.ORDINAL) == "eleventh"
+assert engine.format_number(1999, FormatPurpose.CARDINAL).text == "one thousand nine hundred ninety-nine"
+assert engine.format_number(1999, FormatPurpose.YEAR).text == "nineteen ninety-nine"
+assert engine.format_number(11, FormatPurpose.ORDINAL).text == "eleventh"
 ```
+
+For locales with multiple genders, cases, etc., the different texts are accessible in the result of `format_number`:
+
+``` python
+from unicode_rbnf import RbnfEngine
+
+engine = RbnfEngine.for_language("de")
+print(engine.format_number(1))
+```
+
+Result:
+
+```
+FormatResult(
+  text='eins',
+  text_by_ruleset={
+    'spellout-numbering': 'eins',
+    'spellout-cardinal-neuter': 'ein',
+    'spellout-cardinal-masculine': 'ein',
+    'spellout-cardinal-feminine': 'eine',
+    'spellout-cardinal-n': 'einen',
+    'spellout-cardinal-r': 'einer',
+    'spellout-cardinal-s': 'eines',
+    'spellout-cardinal-m': 'einem'
+  }
+)
+```
+
+The `text` property of the result holds the text of the ruleset with the shortest name (least specific).
 
 ## Supported locales
 

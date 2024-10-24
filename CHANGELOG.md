@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.0
+
+- Change `format_number` to return `FormatResult` instead of a `str`
+- Remove `RulesetName` enum and add `FormatPurpose` instead
+- Add `purpose` to `format_number`, which selects all relevant rulesets
+- Allow multiple ruleset names in `format_number` (prefer using `purpose`)
+- Require an `RbnfEngine` to have a single language
+
 ## 1.3.0
 
 - Remove soft hyphens by default (U+00AD)
