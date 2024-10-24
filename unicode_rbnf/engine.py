@@ -1,26 +1,19 @@
 import logging
 from abc import ABC
 from bisect import bisect_left
-from collections import defaultdict
 from dataclasses import dataclass, field
 from decimal import Decimal
-from enum import Enum, IntFlag
+from enum import Enum, IntFlag, auto
 from math import ceil, floor, isinf, isnan, log, modf
 from pathlib import Path
 from typing import Dict, Final, Iterable, List, Optional, Union
 from xml.etree import ElementTree as et
 
+DEFAULT_TOLERANCE: Final = 1e-8
+SKIP_RULESETS: Final = {"lenient-parse"}
 
-class RulesetName(str, Enum):
-    """Names of common rulesets."""
-
-    NUMBERING = "spellout-numbering"
-    VERBOSE = "spellout-numbering-verbose"
-    CARDINAL = "spellout-cardinal"
-    CARDINAL_VERBOSE = "spellout-cardinal-verbose"
-    ORDINAL = "spellout-ordinal"
-    ORDINAL_VERBOSE = "spellout-ordinal-verbose"
-    YEAR = "spellout-numbering-year"
+_LANG_DIR = Path(__file__).parent / "rbnf"
+_LOGGER = logging.getLogger()
 
 
 class FormatOptions(IntFlag):
@@ -29,16 +22,51 @@ class FormatOptions(IntFlag):
     PRESERVE_SOFT_HYPENS = 1
 
 
-DEFAULT_RULESET = RulesetName.NUMBERING
-DEFAULT_RULESET_FOR_LANGUAGE: Final = {
-    "en": RulesetName.CARDINAL,
-}
-DEFAULT_LANGUAGE: Final = "en"
-DEFAULT_TOLERANCE: Final = 1e-8
-SKIP_RULESETS: Final = {"lenient-parse"}
+class FormatPurpose(Enum):
+    """Purpose of the number formatting."""
 
-_LANG_DIR = Path(__file__).parent / "rbnf"
-_LOGGER = logging.getLogger()
+    UNKNOWN = auto()
+    CARDINAL = auto()
+    ORDINAL = auto()
+    YEAR = auto()
+
+    @staticmethod
+    def from_ruleset_name(ruleset_name: str) -> "FormatPurpose":
+        """Determine formatting purpose from ruleset name."""
+        if not ruleset_name.startswith("spellout"):
+            return FormatPurpose.UNKNOWN
+
+        if "ordinal" in ruleset_name:
+            return FormatPurpose.ORDINAL
+
+        if "year" in ruleset_name:
+            return FormatPurpose.YEAR
+
+        if ("cardinal" in ruleset_name) or ("numbering" in ruleset_name):
+            return FormatPurpose.CARDINAL
+
+        return FormatPurpose.UNKNOWN
+
+
+@dataclass
+class FormatResult:
+    text: str
+    """Formatted text from shortest ruleset name."""
+
+    text_by_ruleset: Dict[str, str]
+    """Formatted text for each ruleset."""
+
+
+class RbnfError(Exception):
+    """Base class for errors."""
+
+
+class RulesetNotFoundError(RbnfError):
+    pass
+
+
+class NoRuleForNumberError(RbnfError):
+    pass
 
 
 class RbnfRulePart(ABC):
@@ -372,12 +400,11 @@ class RbnfRuleSet:
 class RbnfEngine:
     """Formatting engine using rbnf."""
 
-    def __init__(self, language: Optional[str] = None) -> None:
-        # Default language
+    def __init__(self, language: str) -> None:
         self.language = language
 
-        # lang -> ruleset name -> ruleset
-        self.rulesets: Dict[str, Dict[str, RbnfRuleSet]] = defaultdict(dict)
+        # ruleset name -> ruleset
+        self.rulesets: Dict[str, RbnfRuleSet] = {}
 
     @staticmethod
     def get_supported_languages() -> List[str]:
@@ -402,21 +429,15 @@ class RbnfEngine:
         self,
         value_str: str,
         rule_text: str,
+        ruleset_name: str,
         radix: int = 10,
-        ruleset_name: Optional[str] = None,
-        language: Optional[str] = None,
     ) -> Optional[RbnfRule]:
         """Manually add a rule to the engine."""
-        language = language or self.language or DEFAULT_LANGUAGE
-        ruleset_name = ruleset_name or DEFAULT_RULESET_FOR_LANGUAGE.get(
-            language, DEFAULT_RULESET
-        )
-
         assert ruleset_name is not None
-        ruleset = self.rulesets[language].get(ruleset_name)
+        ruleset = self.rulesets.get(ruleset_name)
         if ruleset is None:
             ruleset = RbnfRuleSet(name=ruleset_name)
-            self.rulesets[language][ruleset_name] = ruleset
+            self.rulesets[ruleset_name] = ruleset
 
         rule = RbnfRule.parse(value_str, rule_text, radix=radix)
         if rule is None:
@@ -431,13 +452,15 @@ class RbnfEngine:
 
         return rule
 
-    def load_xml(self, root: et.Element, language: Optional[str] = None) -> None:
+    def load_xml(self, root: et.Element) -> None:
         """Load an XML file with rbnf rules."""
-        if language is None:
-            lang_elem = root.find("identity/language")
-            language = (
-                lang_elem.attrib["type"] if lang_elem is not None else DEFAULT_LANGUAGE
-            )
+        lang_elem = root.find("identity/language")
+        if lang_elem is None:
+            raise ValueError("Missing identity/language element")
+
+        language = lang_elem.attrib["type"]
+        if language != self.language:
+            raise ValueError(f"Expected language {self.language}, got {language}")
 
         for group_elem in root.findall("rbnf//ruleset"):
             ruleset_name = group_elem.attrib["type"]
@@ -455,66 +478,85 @@ class RbnfEngine:
                 self.add_rule(
                     value_str,
                     rule_elem.text,
+                    ruleset_name,
                     radix=radix,
-                    ruleset_name=ruleset_name,
-                    language=language,
                 )
 
     def format_number(
         self,
         number: Union[int, float, str, Decimal],
-        ruleset_name: Optional[str] = None,
+        purpose: Optional[FormatPurpose] = None,
+        ruleset_names: Optional[List[str]] = None,
         radix: Optional[int] = None,
-        language: Optional[str] = None,
         tolerance: float = DEFAULT_TOLERANCE,
         options: Optional[FormatOptions] = None,
-    ) -> str:
+    ) -> FormatResult:
         """Format a number using loaded rulesets."""
+        if purpose is None:
+            purpose = FormatPurpose.CARDINAL
+
+        if ruleset_names is None:
+            # Gather all rulesets that fit the formatting purpose
+            ruleset_names = [
+                r
+                for r in self.rulesets
+                if FormatPurpose.from_ruleset_name(r) == purpose
+                and ("verbose" not in r)
+            ]
+
+        if not ruleset_names:
+            raise ValueError("No rulesets")
+
         if options is None:
             options = FormatOptions(0)
 
-        number_str = "".join(
-            self.iter_format_number(
-                number,
-                ruleset_name=ruleset_name,
-                language=language,
-                tolerance=tolerance,
-            )
+        # ruleset -> number string
+        number_strs: Dict[str, str] = {}
+        for ruleset_name in ruleset_names:
+            try:
+                number_str = "".join(
+                    self.iter_format_number(
+                        number,
+                        ruleset_name=ruleset_name,
+                        tolerance=tolerance,
+                    )
+                )
+
+                if not (options & FormatOptions.PRESERVE_SOFT_HYPENS):
+                    # https://en.wikipedia.org/wiki/Soft_hyphen
+                    number_str = number_str.replace("\xad", "")
+
+                number_strs[ruleset_name] = number_str
+            except (NoRuleForNumberError, RulesetNotFoundError):
+                pass  # skip ruleset
+
+        shortest_ruleset = sorted(ruleset_names, key=len)[0]
+
+        return FormatResult(
+            text=number_strs[shortest_ruleset], text_by_ruleset=number_strs
         )
-
-        if not (options & FormatOptions.PRESERVE_SOFT_HYPENS):
-            # https://en.wikipedia.org/wiki/Soft_hyphen
-            number_str = number_str.replace("\xad", "")
-
-        return number_str
 
     def iter_format_number(
         self,
         number: Union[int, float, str, Decimal],
-        ruleset_name: Optional[str] = None,
+        ruleset_name: str,
         radix: Optional[int] = None,
-        language: Optional[str] = None,
         tolerance: float = DEFAULT_TOLERANCE,
     ) -> Iterable[str]:
         """Format a number using loaded rulesets (generator)."""
-        language = language or self.language or DEFAULT_LANGUAGE
-        ruleset_name = ruleset_name or DEFAULT_RULESET_FOR_LANGUAGE.get(
-            language, DEFAULT_RULESET
-        )
-
         if isinstance(number, str):
             number = Decimal(number)
 
         assert ruleset_name is not None
-        ruleset = self.rulesets[language].get(ruleset_name)
+        ruleset = self.rulesets.get(ruleset_name)
         if ruleset is None:
-            raise ValueError(f"No ruleset: {ruleset_name}")
+            raise RulesetNotFoundError(f"No ruleset: {ruleset_name}")
 
         rule = ruleset.find_rule(
-            float(number), tolerance=tolerance, rulesets=self.rulesets[language]
+            float(number), tolerance=tolerance, rulesets=self.rulesets
         )
         if rule is None:
-            raise ValueError(f"No rule for {number} in {ruleset_name}")
+            raise NoRuleForNumberError(f"No rule for {number} in {ruleset_name}")
 
         q: int = 0
         r: int = 0
@@ -552,7 +594,6 @@ class RbnfEngine:
                     yield from self.iter_format_number(
                         q,
                         ruleset_name=part.ruleset_name or ruleset_name,
-                        language=language,
                         tolerance=tolerance,
                     )
                     if part.text_after:
@@ -567,7 +608,6 @@ class RbnfEngine:
                     yield from self.iter_format_number(
                         r,
                         ruleset_name=part.ruleset_name or ruleset_name,
-                        language=language,
                         tolerance=tolerance,
                     )
                     if part.text_after:
@@ -576,7 +616,6 @@ class RbnfEngine:
                 yield from self.iter_format_number(
                     number,
                     ruleset_name=part.ruleset_name,
-                    language=language,
                     tolerance=tolerance,
                 )
 
