@@ -76,3 +76,5 @@ Some features that will need to be added eventually:
 * Proper fraction rules (`0.x`)
 * Preceding reminder substitution (`>>>` or `→→→`)
 * Number format strings (`==`)
+* Decimal format patterns (`#,##0.00`)
+* Plural replacements (`$(ordinal,one{st}...)`)

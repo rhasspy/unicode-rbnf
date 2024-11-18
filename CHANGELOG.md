@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.1.0
+
+- Ensure all supported languages can load
+- Start on decimal pattern format implementation (not complete)
+
 ## 2.0.0
 
 - Change `format_number` to return `FormatResult` instead of a `str`
