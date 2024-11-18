@@ -1,4 +1,5 @@
 import logging
+import re
 from abc import ABC
 from bisect import bisect_left
 from dataclasses import dataclass, field
@@ -109,6 +110,9 @@ class SubRulePart(RbnfRulePart):
 
     ruleset_name: Optional[str] = None
     """Ruleset name to use during substitution (None for current ruleset name)."""
+
+    format_pattern: Optional[str] = None
+    """DecimalFormat pattern (e.g., #,##0.00)."""
 
 
 @dataclass
@@ -292,6 +296,17 @@ class RbnfRule:
 
                 assert isinstance(part, TextRulePart)
                 part.text += c
+            elif c in ("#", "0", ",", "."):
+                # decimal format pattern (e.g., #,##0.00)
+                assert isinstance(part, SubRulePart)
+                assert state in (
+                    ParseState.SUB_REMAINDER,
+                    ParseState.SUB_QUOTIENT,
+                ), state
+                if part.format_pattern is None:
+                    part.format_pattern = ""
+
+                part.format_pattern += c
             else:
                 raise ValueError(f"Got {c} in {state}")
 
@@ -459,7 +474,7 @@ class RbnfEngine:
             raise ValueError("Missing identity/language element")
 
         language = lang_elem.attrib["type"]
-        if language != self.language:
+        if (language != self.language) and (not self.language.startswith(language)):
             raise ValueError(f"Expected language {self.language}, got {language}")
 
         for group_elem in root.findall("rbnf//ruleset"):
@@ -473,7 +488,7 @@ class RbnfEngine:
                     continue
 
                 value_str = rule_elem.attrib["value"]
-                radix = int(rule_elem.attrib.get("radix", 10))
+                radix = int(re.sub(r"[^0-9]+", "", rule_elem.attrib.get("radix", "10")))
 
                 self.add_rule(
                     value_str,
