@@ -599,8 +599,12 @@ class RbnfEngine:
                 if part.text:
                     yield part.text
             elif isinstance(part, SubRulePart):
-                if (part.type == SubType.QUOTIENT) and (q > 0):
-                    if (q == 0) and (part.ruleset_name is None):
+                sub_part: SubRulePart = part
+
+                if part.type == SubType.QUOTIENT:
+                    if (q == 0) and (
+                        sub_part.is_optional or (part.ruleset_name is None)
+                    ):
                         # Rulesets can use quotients of zero
                         continue
 
@@ -614,7 +618,9 @@ class RbnfEngine:
                     if part.text_after:
                         yield part.text_after
                 elif part.type == SubType.REMAINDER:
-                    if (r == 0) and (part.ruleset_name is None):
+                    if (r == 0) and (
+                        sub_part.is_optional or (part.ruleset_name is None)
+                    ):
                         # Rulesets can use remainders of zero
                         continue
 

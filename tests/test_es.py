@@ -6,6 +6,7 @@ def test_german():
     assert engine.format_number(5).text == "cinco"
     assert engine.format_number(2).text == "dos"
     assert engine.format_number(5.2).text == "cinco coma dos"
+    assert engine.format_number(21).text == "veintiuno"
 
     # All genders
     assert set(engine.format_number(1).text_by_ruleset.values()) == {

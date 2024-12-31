@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=62.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name        = "unicode-rbnf"
+version     = "2.2.0"
+license     = {text = "MIT"}
+description = "Rule-based number formatting using Unicode CLDR data"
+readme      = "README.md"
+authors     = [
+    {name = "Michael Hansen", email = "mike@rhasspy.org"}
+]
+keywords    = ["rbnf", "unicode", "number", "format"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Text Processing :: Linguistic",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+requires-python = ">=3.8.0"
+
+[project.urls]
+"Source Code" = "https://github.com/rhasspy/unicode-rbnf"
+
+[tool.setuptools]
+platforms = ["any"]
+zip-safe  = true
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["unicode_rbnf"]
+
+[tool.setuptools.package-data]
+unicode_rbnf = ["rbnf/*.xml"]

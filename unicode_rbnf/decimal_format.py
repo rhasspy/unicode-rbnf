@@ -2,6 +2,7 @@
 
 See: https://unicode-org.github.io/icu-docs/apidoc/released/icu4c/classicu_1_1DecimalFormat.html
 """
+
 from decimal import Decimal
 from typing import Union
 

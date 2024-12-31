@@ -1,10 +1,11 @@
-from pathlib import Path
+"""Rule-based number formatting using Unicode CLDR data."""
+
+import importlib.metadata
 
 from .engine import FormatOptions, FormatPurpose, FormatResult, RbnfEngine
 
-_DIR = Path(__file__).parent
+__version__ = importlib.metadata.version("unicode_rbnf")
 
-__version__ = (_DIR / "VERSION").read_text(encoding="utf-8").strip()
 
 __all__ = [
     "__version__",
