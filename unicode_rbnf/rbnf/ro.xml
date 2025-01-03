@@ -36,9 +36,9 @@ For terms of use, see http://www.unicode.org/copyright.html
                 <rbnfrule value="11">unsprezece;</rbnfrule>
                 <rbnfrule value="12">→→sprezece;</rbnfrule>
                 <rbnfrule value="20">←%spellout-cardinal-feminine←zeci[ şi →→];</rbnfrule>
-                <rbnfrule value="100">una sută[ →→];</rbnfrule>
+                <rbnfrule value="100">o sută[ →→];</rbnfrule>
                 <rbnfrule value="200">←%spellout-cardinal-feminine← sute[ →→];</rbnfrule>
-                <rbnfrule value="1000">una mie[ →→];</rbnfrule>
+                <rbnfrule value="1000">o mie[ →→];</rbnfrule>
                 <rbnfrule value="2000">←%spellout-cardinal-feminine← mii[ →→];</rbnfrule>
                 <rbnfrule value="1000000">←%spellout-cardinal-neuter← milion[ →→];</rbnfrule>
                 <rbnfrule value="2000000">←%spellout-cardinal-neuter← milioane[ →→];</rbnfrule>
@@ -59,9 +59,9 @@ For terms of use, see http://www.unicode.org/copyright.html
                 <rbnfrule value="3">=%spellout-cardinal-masculine=;</rbnfrule>
                 <rbnfrule value="12">→→sprezece;</rbnfrule>
                 <rbnfrule value="20">←%spellout-cardinal-feminine←zeci[ şi →→];</rbnfrule>
-                <rbnfrule value="100">una sută[ →→];</rbnfrule>
+                <rbnfrule value="100">o sută[ →→];</rbnfrule>
                 <rbnfrule value="200">←%spellout-cardinal-feminine← sute[ →→];</rbnfrule>
-                <rbnfrule value="1000">una mie[ →→];</rbnfrule>
+                <rbnfrule value="1000">o mie[ →→];</rbnfrule>
                 <rbnfrule value="2000">←%spellout-cardinal-feminine← mii[ →→];</rbnfrule>
                 <rbnfrule value="1000000">←%spellout-cardinal-neuter← milion[ →→];</rbnfrule>
                 <rbnfrule value="2000000">←%spellout-cardinal-neuter← milioane[ →→];</rbnfrule>
@@ -80,9 +80,9 @@ For terms of use, see http://www.unicode.org/copyright.html
                 <rbnfrule value="1">unu;</rbnfrule>
                 <rbnfrule value="2">=%spellout-cardinal-feminine=;</rbnfrule>
                 <rbnfrule value="20">←%spellout-cardinal-feminine←zeci[ şi →→];</rbnfrule>
-                <rbnfrule value="100">una sută[ →→];</rbnfrule>
+                <rbnfrule value="100">o sută[ →→];</rbnfrule>
                 <rbnfrule value="200">←%spellout-cardinal-feminine← sute[ →→];</rbnfrule>
-                <rbnfrule value="1000">una mie[ →→];</rbnfrule>
+                <rbnfrule value="1000">o mie[ →→];</rbnfrule>
                 <rbnfrule value="2000">←%spellout-cardinal-feminine← mii[ →→];</rbnfrule>
                 <rbnfrule value="1000000">←%spellout-cardinal-neuter← milion[ →→];</rbnfrule>
                 <rbnfrule value="2000000">←%spellout-cardinal-neuter← milioane[ →→];</rbnfrule>
