@@ -10,3 +10,5 @@ def test_french():
         "un",
         "une",
     }
+
+    assert engine.format_number(2.5).text == "deux virgule cinq"

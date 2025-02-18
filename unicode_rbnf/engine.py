@@ -1,3 +1,8 @@
+"""Python implementation of Rule-Based Number Formatting (RBNF) engine from ICU.
+
+Uses XML files from the CLDR: https://cldr.unicode.org
+"""
+
 import logging
 import re
 from abc import ABC
@@ -7,7 +12,7 @@ from decimal import Decimal
 from enum import Enum, IntFlag, auto
 from math import ceil, floor, isinf, isnan, log, modf
 from pathlib import Path
-from typing import Dict, Final, Iterable, List, Optional, Union
+from typing import Dict, Final, Iterable, List, Optional, Set, Union
 from xml.etree import ElementTree as et
 
 DEFAULT_TOLERANCE: Final = 1e-8
@@ -15,6 +20,9 @@ SKIP_RULESETS: Final = {"lenient-parse"}
 
 _LANG_DIR = Path(__file__).parent / "rbnf"
 _LOGGER = logging.getLogger()
+
+# Don't load these XML files
+_EXCLUDED_XML_NAMES: Set[str] = {"root", "es_419", "en_001", "nb"}
 
 
 class FormatOptions(IntFlag):
@@ -51,6 +59,8 @@ class FormatPurpose(Enum):
 
 @dataclass
 class FormatResult:
+    """Result of formatting a number."""
+
     text: str
     """Formatted text from shortest ruleset name."""
 
@@ -63,11 +73,11 @@ class RbnfError(Exception):
 
 
 class RulesetNotFoundError(RbnfError):
-    pass
+    """A requested ruleset was not found."""
 
 
 class NoRuleForNumberError(RbnfError):
-    pass
+    """No matching rule could be found for a number."""
 
 
 class RbnfRulePart(ABC):
@@ -424,7 +434,13 @@ class RbnfEngine:
     @staticmethod
     def get_supported_languages() -> List[str]:
         """Return a list of supported language codes."""
-        return sorted([f.stem for f in _LANG_DIR.glob("*.xml")])
+        return sorted(
+            [
+                f.stem
+                for f in _LANG_DIR.glob("*.xml")
+                if f.stem not in _EXCLUDED_XML_NAMES
+            ]
+        )
 
     @staticmethod
     def for_language(language: str) -> "RbnfEngine":
@@ -545,7 +561,10 @@ class RbnfEngine:
             except (NoRuleForNumberError, RulesetNotFoundError):
                 pass  # skip ruleset
 
-        shortest_ruleset = sorted(ruleset_names, key=len)[0]
+        if not number_strs:
+            raise NoRuleForNumberError(f"No rules were successful for {number}")
+
+        shortest_ruleset = sorted(number_strs, key=len)[0]
 
         return FormatResult(
             text=number_strs[shortest_ruleset], text_by_ruleset=number_strs

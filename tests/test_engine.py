@@ -1,3 +1,5 @@
+import pytest
+
 from unicode_rbnf.engine import (
     RbnfRule,
     TextRulePart,
@@ -5,6 +7,7 @@ from unicode_rbnf.engine import (
     SubType,
     RbnfEngine,
     FormatResult,
+    NoRuleForNumberError,
 )
 
 
@@ -78,3 +81,10 @@ def test_zero_rules():
     assert (
         engine.format_number(1, ruleset_names=["ruleset_1"]).text == "abc efgone hijdef"
     )
+
+
+def test_no_rules_for_number():
+    engine = RbnfEngine("en")
+
+    with pytest.raises(NoRuleForNumberError):
+        engine.format_number(1, ruleset_names=["does_not_exist"])
