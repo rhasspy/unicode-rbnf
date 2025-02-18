@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.3.0
+
+- Fix Romanian feminine numerals (https://github.com/rhasspy/unicode-rbnf/pull/8)
+- Correct Slovenian spellings/grammar (https://github.com/rhasspy/unicode-rbnf/pull/7)
+- Handle case where only sub-rules match (https://github.com/OHF-Voice/speech-to-phrase/issues/15)
+
 ## 2.2.0
 
 - Fix use of optional sub part with zero remainder
