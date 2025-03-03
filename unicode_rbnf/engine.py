@@ -133,12 +133,69 @@ class ReplaceRulePart(RbnfRulePart):
     """Name of ruleset to use."""
 
 
+@dataclass
+class PluralFormatPart(RbnfRulePart):
+    """Function with other ruleset (keep value)."""
+
+    function_name: str = ""
+    """Function to use for substitution."""
+
+    function_value: str = ""
+    """Value to use for fucntion substitution."""
+
+    previous_state: str = ""
+    """Previous state of parser."""
+
+    previous_part: Optional[RbnfRulePart] = None
+    """Previous part of parser."""
+
+    def render(self, number: Decimal) -> str:
+        """Render function with value."""
+        count_zero = self.function_value.count('0')
+        name_value = str(number)[:-count_zero]
+        value = Decimal(name_value[-1:])
+        value_many = Decimal(name_value[-2:])
+        
+        clean_fn = self.function_name.replace("cardinal,", "").replace("ordinal,", "")
+        
+        zero_match = re.search(r'zero\{(.*?)\}', clean_fn)
+        zero_value = zero_match.group(1) if zero_match else ""
+        if zero_match and zero_value and value == 0:
+            return zero_value
+
+        one_match = re.search(r'one\{(.*?)\}', clean_fn)
+        one_value = one_match.group(1) if one_match else ""
+        if one_match and one_value and value == 1:
+            return one_value
+
+        two_match = re.search(r'two\{(.*?)\}', clean_fn)
+        two_value = two_match.group(1) if two_match else ""
+        if two_match and two_value and value == 2:
+            return two_value
+
+        few_match = re.search(r'few\{(.*?)\}', clean_fn)
+        few_value = few_match.group(1) if few_match else ""
+        if few_match and few_value and value in [2, 3, 4]:
+            return few_value
+
+        many_match = re.search(r'many\{(.*?)\}', clean_fn)
+        many_value = many_match.group(1) if many_match else ""
+        if many_match and few_value and value_many in [11, 12, 13, 14, 15, 16, 17, 18, 19]:
+            return few_value
+
+        other_match = re.search(r'other\{(.*?)\}', clean_fn)
+        other_value = other_match.group(1) if other_match else ""
+        if other_match and other_value:
+            return other_value
+
+
 class ParseState(str, Enum):
     """Set of rbnf parser."""
 
     TEXT = "text"
     SUB_OPTIONAL_BEFORE = "optional_before"
     SUB_OPTIONAL_AFTER = "optional_after"
+    SUB_PLURAL_FORMAT = "plural_format"
     SUB_REMAINDER = "remainder"
     SUB_QUOTIENT = "quotient"
     SUB_RULESET_NAME = "sub_ruleset_name"
@@ -199,8 +256,8 @@ class RbnfRule:
         part: Optional[RbnfRulePart] = None
         is_sub_optional = False
         sub_text_before = ""
-
-        for c in text:
+        
+        for x, c in enumerate(text):
             if c == ";":
                 # End of rule text
                 break
@@ -255,6 +312,22 @@ class RbnfRule:
                     pass
                 else:
                     raise ValueError(f"Got {c} in {state}")
+            elif c == "$":
+                # $(cardinal,plural syntax)$, $(ordinal,plural syntax)$
+                if text[x + 1] == "(":
+                    _previous_state = state
+                    _previous_part = part
+                    state = ParseState.SUB_PLURAL_FORMAT
+                    part = PluralFormatPart()
+                    part.function_value = value_str
+                    part.previous_state = _previous_state
+                    part.previous_part = _previous_part
+                elif state == ParseState.SUB_PLURAL_FORMAT and text[x - 1] == ")":
+                    rule.parts.append(part)
+                    state = part.previous_state
+                    part = part.previous_part
+                else:
+                    raise ValueError(f"Got {c} in {state} fot text: {text} (x: {x})")
             elif c == "[":
                 # [optional] (start)
                 if state == ParseState.TEXT:
@@ -289,6 +362,10 @@ class RbnfRule:
                 # [... after]
                 assert isinstance(part, SubRulePart)
                 part.text_after += c
+            elif state == ParseState.SUB_PLURAL_FORMAT:
+                assert isinstance(part, PluralFormatPart)
+                if not c in ["(", ")"]:
+                    part.function_name += c
             elif state == ParseState.SUB_RULESET_NAME:
                 # %ruleset_name in << or >>
                 assert isinstance(part, SubRulePart)
@@ -608,8 +685,10 @@ class RbnfEngine:
             else:
                 _LOGGER.warning("Unhandled special rule: %s", rule.value)
         elif rule.value > 0:
+            if len(str(rule.value)) > 1 and str(rule.value)[0] != "1":
+                rule.value = int("1" + str(rule.value)[1:])
             power_below = rule.radix ** int(floor(log(rule.value, rule.radix)))
-            power_above = rule.radix ** int(ceil(log(rule.value, rule.radix)))
+            power_above = rule.radix ** int(ceil(log(rule.value, rule.radix)))            
             divisor = power_above if (number >= power_above) else power_below
             q, r = divmod(number, divisor)
 
@@ -617,6 +696,9 @@ class RbnfEngine:
             if isinstance(part, TextRulePart):
                 if part.text:
                     yield part.text
+            elif isinstance(part, PluralFormatPart):
+                if part.function_name:
+                    yield part.render(number)
             elif isinstance(part, SubRulePart):
                 sub_part: SubRulePart = part
 
