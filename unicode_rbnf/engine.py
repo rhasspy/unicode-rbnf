@@ -195,7 +195,7 @@ class ParseState(str, Enum):
     TEXT = "text"
     SUB_OPTIONAL_BEFORE = "optional_before"
     SUB_OPTIONAL_AFTER = "optional_after"
-    SUB_FUNCTION = "function"
+    SUB_PLURAL_FORMAT = "plural_format"
     SUB_REMAINDER = "remainder"
     SUB_QUOTIENT = "quotient"
     SUB_RULESET_NAME = "sub_ruleset_name"
@@ -317,12 +317,12 @@ class RbnfRule:
                 if text[x + 1] == "(":
                     _previous_state = state
                     _previous_part = part
-                    state = ParseState.SUB_FUNCTION
+                    state = ParseState.SUB_PLURAL_FORMAT
                     part = PluralFormatPart()
                     part.function_vaule = value_str
                     part.previous_state = _previous_state
                     part.previous_part = _previous_part
-                elif state == ParseState.SUB_FUNCTION and text[x - 1] == ")":
+                elif state == ParseState.SUB_PLURAL_FORMAT and text[x - 1] == ")":
                     rule.parts.append(part)
                     state = part.previous_state
                     part = part.previous_part
@@ -362,7 +362,7 @@ class RbnfRule:
                 # [... after]
                 assert isinstance(part, SubRulePart)
                 part.text_after += c
-            elif state == ParseState.SUB_FUNCTION:
+            elif state == ParseState.SUB_PLURAL_FORMAT:
                 assert isinstance(part, PluralFormatPart)
                 if not c in ["(", ")"]:
                     part.function_name += c
