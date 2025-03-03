@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ldml SYSTEM "../../common/dtd/ldml.dtd">
+<ldml>
+  <identity>
+    <version number="1.0"/>
+    <language type="zu"/>  <!-- Zulu locale -->
+  </identity>
+  <rbnf>
+    <rulesetGrouping type="SpelloutRules">
+      <ruleset type="spellout-numbering">
+        <rbnfrule value="0">=%spellout-cardinal=;</rbnfrule>
+      </ruleset>
+
+      <ruleset type="spellout-cardinal">
+        <!-- ones -->
+        <rbnfrule value="0">iqanda;</rbnfrule>
+        <rbnfrule value="1">kunye;</rbnfrule>
+        <rbnfrule value="2">kubili;</rbnfrule>
+        <rbnfrule value="3">kuthathu;</rbnfrule>
+        <rbnfrule value="4">kune;</rbnfrule>
+        <rbnfrule value="5">kuhlanu;</rbnfrule>
+        <rbnfrule value="6">isithupha;</rbnfrule>
+        <rbnfrule value="7">isikhombisa;</rbnfrule>
+        <rbnfrule value="8">isishiyagalombili;</rbnfrule>
+        <rbnfrule value="9">isishiyagalolunye;</rbnfrule>
+
+        <!-- tens -->
+        <rbnfrule value="10">ishumi[ →%%spellout-cardinal-and→];</rbnfrule>
+        <rbnfrule value="20">amashumi amabili[ →%%spellout-cardinal-and→]</rbnfrule>
+        <rbnfrule value="30">amashumi amathathu[ →%%spellout-cardinal-and→]</rbnfrule>
+        <rbnfrule value="40">amashumi amane[ →%%spellout-cardinal-and→]</rbnfrule>
+        <rbnfrule value="50">amashumi amahlanu[ →%%spellout-cardinal-and→]</rbnfrule>
+        <rbnfrule value="60">amashumi ayisithupha[ →%%spellout-cardinal-and→]</rbnfrule>
+        <rbnfrule value="70">amashumi ayisikhombisa[ →%%spellout-cardinal-and→]</rbnfrule>
+        <rbnfrule value="80">amashumi ayisishiyagalombili[ →%%spellout-cardinal-and→]</rbnfrule>
+        <rbnfrule value="90">amashumi ayisishiyagalolunye[ →%%spellout-cardinal-and→]</rbnfrule>
+
+        <!-- hundreds -->
+        <rbnfrule value="100">ikhulu[ →%%spellout-cardinal-and→]</rbnfrule>
+        <rbnfrule value="200">amakhulu amabili[ →%%spellout-cardinal-and→]</rbnfrule>
+        <rbnfrule value="300">amakhulu amathathu[ →%%spellout-cardinal-and→]</rbnfrule>
+        <rbnfrule value="400">amakhulu amane[ →%%spellout-cardinal-and→]</rbnfrule>
+        <rbnfrule value="500">amakhulu amahlanu[ →%%spellout-cardinal-and→]</rbnfrule>
+        <rbnfrule value="600">amakhulu ayisithupha[ →%%spellout-cardinal-and→]</rbnfrule>
+        <rbnfrule value="700">amakhulu ayisikhombisa[ →%%spellout-cardinal-and→]</rbnfrule>
+        <rbnfrule value="800">amakhulu ayisishiyagalombili[ →%%spellout-cardinal-and→]</rbnfrule>
+        <rbnfrule value="900">amakhulu ayisishiyagalolunye[ →%%spellout-cardinal-and→]</rbnfrule>
+
+        <!-- thousands -->
+        <rbnfrule value="1000">inkulungwane[ →%%spellout-cardinal-and→]</rbnfrule>
+        <rbnfrule value="2000">izinkulungwane ezimbili[ →%%spellout-cardinal-and→]</rbnfrule>
+        <rbnfrule value="3000">izinkulungwane ezintathu[ →%%spellout-cardinal-and→]</rbnfrule>
+        <rbnfrule value="4000">izinkulungwane ezine[ →%%spellout-cardinal-and→]</rbnfrule>
+        <rbnfrule value="5000">izinkulungwane ezinhlanu[ →%%spellout-cardinal-and→]</rbnfrule>
+        <rbnfrule value="6000">izinkulungwane eziyisithupha[ →%%spellout-cardinal-and→]</rbnfrule>
+        <rbnfrule value="7000">izinkulungwane eziyisikhombisa[ →%%spellout-cardinal-and→]</rbnfrule>
+        <rbnfrule value="8000">izinkulungwane eziyisishiyagalombili[ →%%spellout-cardinal-and→]</rbnfrule>
+        <rbnfrule value="9000">izinkulungwane eziyisishiyagalolunye[ →%%spellout-cardinal-and→]</rbnfrule>
+
+        <!-- tens of thousands -->
+        <rbnfrule value="10000">izinkulungwane eziyishumi[ →%%spellout-cardinal-and→]</rbnfrule>
+        <rbnfrule value="11000" radix="110">izinkulungwane eziyishumi nanye[ →%%spellout-cardinal-and→]</rbnfrule>
+        <rbnfrule value="12000" radix="120">izinkulungwane eziyishumi nambili[ →%%spellout-cardinal-and→]</rbnfrule>
+        <rbnfrule value="13000" radix="130">izinkulungwane eziyishumi nantathu[ →%%spellout-cardinal-and→]</rbnfrule>
+        <rbnfrule value="14000" radix="140">izinkulungwane eziyishumi nane[ →%%spellout-cardinal-and→]</rbnfrule>
+        <rbnfrule value="15000" radix="150">izinkulungwane eziyishumi nanhlanu[ →%%spellout-cardinal-and→]</rbnfrule>
+        <rbnfrule value="16000" radix="160">izinkulungwane eziyishumi nesithupha[ →%%spellout-cardinal-and→]</rbnfrule>
+        <rbnfrule value="17000" radix="170">izinkulungwane eziyishumi nesikhombisa[ →%%spellout-cardinal-and→]</rbnfrule>
+        <rbnfrule value="18000" radix="180">izinkulungwane eziyishumi nesishiyagalombili[ →%%spellout-cardinal-and→]</rbnfrule>
+        <rbnfrule value="19000" radix="190">izinkulungwane eziyishumi nesishiyagalolunye[ →%%spellout-cardinal-and→]</rbnfrule>
+      </ruleset>
+
+      <ruleset type="spellout-cardinal-and" access="private">
+        <!-- ones -->
+        <rbnfrule value="1">nanye;</rbnfrule>
+        <rbnfrule value="2">nambili;</rbnfrule>
+        <rbnfrule value="3">nantathu;</rbnfrule>
+        <rbnfrule value="4">nane;</rbnfrule>
+        <rbnfrule value="5">nanhlanu;</rbnfrule>
+        <rbnfrule value="6">nesithupha;</rbnfrule>
+        <rbnfrule value="7">nesikhombisa;</rbnfrule>
+        <rbnfrule value="8">nesishiyagalombili;</rbnfrule>
+        <rbnfrule value="9">nesishiyagalolunye;</rbnfrule>
+
+        <!-- tens -->
+        <rbnfrule value="10">neshumi[ →→];</rbnfrule>
+        <rbnfrule value="20">namashumi amabili[ →→]</rbnfrule>
+        <rbnfrule value="30">namashumi amathathu[ →→]</rbnfrule>
+        <rbnfrule value="40">namashumi amane[ →→]</rbnfrule>
+        <rbnfrule value="50">namashumi amahlanu[ →→]</rbnfrule>
+        <rbnfrule value="60">namashumi ayisithupha[ →→]</rbnfrule>
+        <rbnfrule value="70">namashumi ayisikhombisa[ →→]</rbnfrule>
+        <rbnfrule value="80">namashumi ayisishiyagalombili[ →→]</rbnfrule>
+        <rbnfrule value="90">namashumi ayisishiyagalolunye[ →→]</rbnfrule>
+
+        <!-- hundreds -->
+        <rbnfrule value="100">nekhulu[ →→]</rbnfrule>
+        <rbnfrule value="200">namakhulu amabili[ →→]</rbnfrule>
+        <rbnfrule value="300">namakhulu amathathu[ →→]</rbnfrule>
+        <rbnfrule value="400">namakhulu amane[ →→]</rbnfrule>
+        <rbnfrule value="500">namakhulu amahlanu[ →→]</rbnfrule>
+        <rbnfrule value="600">namakhulu ayisithupha[ →→]</rbnfrule>
+        <rbnfrule value="700">namakhulu ayisikhombisa[ →→]</rbnfrule>
+        <rbnfrule value="800">namakhulu ayisishiyagalombili[ →→]</rbnfrule>
+        <rbnfrule value="900">namakhulu ayisishiyagalolunye[ →→]</rbnfrule>
+
+        <!-- thousands -->
+        <rbnfrule value="1000">nenkulungwane[ →→]</rbnfrule>
+        <rbnfrule value="2000">nezinkulungwane ezimbili[ →→]</rbnfrule>
+        <rbnfrule value="3000">nezinkulungwane ezintathu[ →→]</rbnfrule>
+        <rbnfrule value="4000">nezinkulungwane ezine[ →→]</rbnfrule>
+        <rbnfrule value="5000">nezinkulungwane ezinhlanu[ →→]</rbnfrule>
+        <rbnfrule value="6000">nezinkulungwane eziyisithupha[ →→]</rbnfrule>
+        <rbnfrule value="7000">nezinkulungwane eziyisikhombisa[ →→]</rbnfrule>
+        <rbnfrule value="8000">nezinkulungwane eziyisishiyagalombili[ →→]</rbnfrule>
+        <rbnfrule value="9000">nezinkulungwane eziyisishiyagalolunye[ →→]</rbnfrule>
+      </ruleset>
+    </rulesetGrouping>
+  </rbnf>
+</ldml>
