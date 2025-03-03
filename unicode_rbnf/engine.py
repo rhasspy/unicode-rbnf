@@ -140,7 +140,7 @@ class PluralFormatPart(RbnfRulePart):
     function_name: str = ""
     """Function to use for substitution."""
 
-    function_vaule: str = ""
+    function_value: str = ""
     """Value to use for fucntion substitution."""
 
     previous_state: str = ""
@@ -151,7 +151,7 @@ class PluralFormatPart(RbnfRulePart):
 
     def render(self, number: Decimal) -> str:
         """Render function with value."""
-        count_zero = self.function_vaule.count('0')
+        count_zero = self.function_value.count('0')
         name_value = str(number)[:-count_zero]
         value = Decimal(name_value[-1:])
         value_many = Decimal(name_value[-2:])
@@ -319,7 +319,7 @@ class RbnfRule:
                     _previous_part = part
                     state = ParseState.SUB_PLURAL_FORMAT
                     part = PluralFormatPart()
-                    part.function_vaule = value_str
+                    part.function_value = value_str
                     part.previous_state = _previous_state
                     part.previous_part = _previous_part
                 elif state == ParseState.SUB_PLURAL_FORMAT and text[x - 1] == ")":
