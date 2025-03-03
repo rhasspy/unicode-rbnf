@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.4.0 (unreleased)
+
+- Initial support for Zulu (up to 19,999)
+
 ## 2.3.0
 
 - Fix Romanian feminine numerals (https://github.com/rhasspy/unicode-rbnf/pull/8)
