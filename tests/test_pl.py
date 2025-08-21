@@ -1,4 +1,4 @@
-from unicode_rbnf import RbnfEngine, FormatPurpose
+from unicode_rbnf import FormatPurpose, RbnfEngine
 
 
 def test_polish():
@@ -34,7 +34,7 @@ def test_polish():
     assert engine.format_number(-14).text == "minus czternaście"
     # assert engine.format_number(-14.6).text == "minus czternaście przecinek sześć"
     # assert engine.format_number(-14.89).text == "minus czternaście przecinek osiemdziesiąt dziewięć"
-    
+
     # assert engine.format_number(float("nan")).text == "nie jest liczbą"
     # assert engine.format_number(float("inf")).text == "nieskończona"
 
@@ -43,4 +43,7 @@ def test_polish():
     # assert engine.format_number("5.3").text == "pięć przecinek trzy"
 
     # Years
-    assert engine.format_number(1999, FormatPurpose.YEAR).text == "tysiąc dziewięćset dziewięćdziesiąt dziewięć"
+    assert (
+        engine.format_number(1999, FormatPurpose.YEAR).text
+        == "tysiąc dziewięćset dziewięćdziesiąt dziewięć"
+    )

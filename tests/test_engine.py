@@ -1,13 +1,13 @@
 import pytest
 
 from unicode_rbnf.engine import (
-    RbnfRule,
-    TextRulePart,
-    SubRulePart,
-    SubType,
-    RbnfEngine,
     FormatResult,
     NoRuleForNumberError,
+    RbnfEngine,
+    RbnfRule,
+    SubRulePart,
+    SubType,
+    TextRulePart,
 )
 
 

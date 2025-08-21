@@ -7,7 +7,19 @@ _DIR = Path(__file__).parent
 _PROGRAM_DIR = _DIR.parent
 _VENV_DIR = _PROGRAM_DIR / ".venv"
 _MODULE_DIR = _PROGRAM_DIR / "unicode_rbnf"
+_TESTS_DIR = _PROGRAM_DIR / "tests"
+_TEST_FILES = [str(p) for p in _TESTS_DIR.glob("*.py")]
+_SCRIPT_DIR = _PROGRAM_DIR / "script"
 
-context = venv.EnvBuilder().ensure_directories(_VENV_DIR)
-subprocess.check_call([context.env_exe, "-m", "black", str(_MODULE_DIR)])
-subprocess.check_call([context.env_exe, "-m", "isort", str(_MODULE_DIR)])
+if _VENV_DIR.exists():
+    context = venv.EnvBuilder().ensure_directories(_VENV_DIR)
+    python_exe = context.env_exe
+else:
+    python_exe = "python3"
+
+subprocess.check_call(
+    [python_exe, "-m", "black", str(_MODULE_DIR), str(_SCRIPT_DIR)] + _TEST_FILES
+)
+subprocess.check_call(
+    [python_exe, "-m", "isort", str(_MODULE_DIR), str(_SCRIPT_DIR)] + _TEST_FILES
+)

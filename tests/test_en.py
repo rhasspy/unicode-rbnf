@@ -1,4 +1,4 @@
-from unicode_rbnf import RbnfEngine, FormatPurpose
+from unicode_rbnf import FormatPurpose, RbnfEngine
 
 
 def test_english():

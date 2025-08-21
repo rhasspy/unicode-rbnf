@@ -1,6 +1,6 @@
-from unicode_rbnf import RbnfEngine
-
 import pytest
+
+from unicode_rbnf import RbnfEngine
 
 
 @pytest.mark.parametrize("language", RbnfEngine.get_supported_languages())

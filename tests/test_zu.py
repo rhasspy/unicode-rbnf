@@ -1,4 +1,6 @@
-from unicode_rbnf import RbnfEngine, FormatPurpose
+"""Tests for Zulu."""
+
+from unicode_rbnf import RbnfEngine
 
 
 def test_zulu():
