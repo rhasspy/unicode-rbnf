@@ -2,6 +2,7 @@
 
 ## 2.4.0 (unreleased)
 
+- Render digit-by-digit after decimal point (0.123 -> zero point one two three)
 - Initial support for Zulu (up to 19,999)
 
 ## 2.3.0
