@@ -13,16 +13,16 @@ def main() -> None:
     )
     parser.add_argument(
         "--purpose",
-        choices=[v.value for v in FormatPurpose],
-        default=FormatPurpose.CARDINAL,
-        help="Format purpose",
+        choices=[v.name for v in FormatPurpose],
+        default=FormatPurpose.CARDINAL.name,
+        help="Format purpose (default: CARDINAL)",
     )
     parser.add_argument("number", nargs="+", help="Number(s) to turn into words")
     args = parser.parse_args()
 
     engine = RbnfEngine.for_language(args.language)
     for number_str in args.number:
-        result = engine.format_number(number_str, purpose=FormatPurpose(args.purpose))
+        result = engine.format_number(number_str, purpose=FormatPurpose[args.purpose])
         for ruleset, words in result.text_by_ruleset.items():
             print(number_str, ruleset, words, sep="|")
 
