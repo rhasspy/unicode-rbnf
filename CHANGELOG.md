@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.4.1
+
+- Fix Slovak hundreds: 100-199 spelled out as "jednasto ..." instead of "sto ..."
+- Fix Slovak and Czech thousands: 1000-1999 spelled out as "jedna tisíc ..." instead of "tisíc ..."
+- Add Slovak and Czech tests
+
 ## 2.4.0
 
 - Render digit-by-digit after decimal point (0.123 -> zero point one two three)
