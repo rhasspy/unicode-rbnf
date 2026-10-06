@@ -53,8 +53,7 @@ For terms of use, see http://www.unicode.org/copyright.html
                 <rbnfrule value="300">←%spellout-cardinal-feminine← sta[ →→];</rbnfrule>
                 <rbnfrule value="500">←%spellout-cardinal-feminine← set[ →→];</rbnfrule>
                 <rbnfrule value="1000">tisíc[ →→];</rbnfrule>
-                <rbnfrule value="2000">←%spellout-cardinal-feminine← tisíce[ →→];</rbnfrule>
-                <rbnfrule value="5000">←%spellout-cardinal-feminine← tisíc[ →→];</rbnfrule>
+                <rbnfrule value="2000">←%spellout-cardinal-masculine← $(cardinal,one{tisíc}few{tisíce}other{tisíc})$[ →→];</rbnfrule>
                 <rbnfrule value="1000000">←%spellout-cardinal-masculine← milión[ →→];</rbnfrule>
                 <rbnfrule value="2000000">←%spellout-cardinal-masculine← milióny[ →→];</rbnfrule>
                 <rbnfrule value="5000000">←%spellout-cardinal-masculine← miliónů[ →→];</rbnfrule>
@@ -87,8 +86,7 @@ For terms of use, see http://www.unicode.org/copyright.html
                 <rbnfrule value="300">←%spellout-cardinal-feminine← sta[ →→];</rbnfrule>
                 <rbnfrule value="500">←%spellout-cardinal-feminine← set[ →→];</rbnfrule>
                 <rbnfrule value="1000">tisíc[ →→];</rbnfrule>
-                <rbnfrule value="2000">←%spellout-cardinal-feminine← tisíce[ →→];</rbnfrule>
-                <rbnfrule value="5000">←%spellout-cardinal-feminine← tisíc[ →→];</rbnfrule>
+                <rbnfrule value="2000">←%spellout-cardinal-masculine← $(cardinal,one{tisíc}few{tisíce}other{tisíc})$[ →→];</rbnfrule>
                 <rbnfrule value="1000000">←%spellout-cardinal-masculine← milión[ →→];</rbnfrule>
                 <rbnfrule value="2000000">←%spellout-cardinal-masculine← milióny[ →→];</rbnfrule>
                 <rbnfrule value="5000000">←%spellout-cardinal-masculine← miliónů[ →→];</rbnfrule>
@@ -121,8 +119,7 @@ For terms of use, see http://www.unicode.org/copyright.html
                 <rbnfrule value="300">←%spellout-cardinal-feminine← sta[ →→];</rbnfrule>
                 <rbnfrule value="500">←%spellout-cardinal-feminine← set[ →→];</rbnfrule>
                 <rbnfrule value="1000">tisíc[ →→];</rbnfrule>
-                <rbnfrule value="2000">←%spellout-cardinal-feminine← tisíce[ →→];</rbnfrule>
-                <rbnfrule value="5000">←%spellout-cardinal-feminine← tisíc[ →→];</rbnfrule>
+                <rbnfrule value="2000">←%spellout-cardinal-masculine← $(cardinal,one{tisíc}few{tisíce}other{tisíc})$[ →→];</rbnfrule>
                 <rbnfrule value="1000000">←%spellout-cardinal-masculine← milión[ →→];</rbnfrule>
                 <rbnfrule value="2000000">←%spellout-cardinal-masculine← milióny[ →→];</rbnfrule>
                 <rbnfrule value="5000000">←%spellout-cardinal-masculine← miliónů[ →→];</rbnfrule>

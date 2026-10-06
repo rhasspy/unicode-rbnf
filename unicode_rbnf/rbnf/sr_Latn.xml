@@ -55,12 +55,16 @@ CLDR data files are interpreted according to the LDML specification (http://unic
 				<rbnfrule value="200">dvesta[ →→];</rbnfrule>
 				<rbnfrule value="300">trista[ →→];</rbnfrule>
 				<rbnfrule value="400">←%spellout-cardinal-feminine←sto[ →→];</rbnfrule>
-				<rbnfrule value="1000">←%spellout-cardinal-feminine← hiljadu[ →→];</rbnfrule>
-				<rbnfrule value="2000">←%spellout-cardinal-feminine← hiljada[ →→];</rbnfrule>
-				<rbnfrule value="1000000">←%spellout-cardinal-masculine← milion[ →→];</rbnfrule>
-				<rbnfrule value="1000000000">←%spellout-cardinal-masculine← milijarda[ →→];</rbnfrule>
-				<rbnfrule value="1000000000000">←%spellout-cardinal-masculine← bilion[ →→];</rbnfrule>
-				<rbnfrule value="1000000000000000">←%spellout-cardinal-masculine← bilijarda[ →→];</rbnfrule>
+				<rbnfrule value="1000">hiljadu[ →→];</rbnfrule>
+				<rbnfrule value="2000">←%spellout-cardinal-feminine← $(cardinal,one{hiljada}few{hiljade}other{hiljada})$[ →→];</rbnfrule>
+				<rbnfrule value="1000000">milion[ →→];</rbnfrule>
+				<rbnfrule value="2000000">←%spellout-cardinal-masculine← $(cardinal,one{milion}few{miliona}other{miliona})$[ →→];</rbnfrule>
+				<rbnfrule value="1000000000">milijardu[ →→];</rbnfrule>
+				<rbnfrule value="2000000000">←%spellout-cardinal-feminine← $(cardinal,one{milijarda}few{milijarde}other{milijardi})$[ →→];</rbnfrule>
+				<rbnfrule value="1000000000000">bilion[ →→];</rbnfrule>
+				<rbnfrule value="2000000000000">←%spellout-cardinal-masculine← $(cardinal,one{bilion}few{biliona}other{biliona})$[ →→];</rbnfrule>
+				<rbnfrule value="1000000000000000">bilijardu[ →→];</rbnfrule>
+				<rbnfrule value="2000000000000000">←%spellout-cardinal-feminine← $(cardinal,one{bilijarda}few{bilijarde}other{bilijardi})$[ →→];</rbnfrule>
 				<rbnfrule value="1000000000000000000">=#,##0=;</rbnfrule>
 			</ruleset>
 			<ruleset type="spellout-cardinal-neuter">
@@ -82,12 +86,16 @@ CLDR data files are interpreted according to the LDML specification (http://unic
 				<rbnfrule value="200">dvesta[ →→];</rbnfrule>
 				<rbnfrule value="300">trista[ →→];</rbnfrule>
 				<rbnfrule value="400">←%spellout-cardinal-feminine←sto[ →→];</rbnfrule>
-				<rbnfrule value="1000">←%spellout-cardinal-feminine← hiljadu[ →→];</rbnfrule>
-				<rbnfrule value="2000">←%spellout-cardinal-feminine← hiljada[ →→];</rbnfrule>
-				<rbnfrule value="1000000">←%spellout-cardinal-masculine← milion[ →→];</rbnfrule>
-				<rbnfrule value="1000000000">←%spellout-cardinal-masculine← milijarda[ →→];</rbnfrule>
-				<rbnfrule value="1000000000000">←%spellout-cardinal-masculine← bilion[ →→];</rbnfrule>
-				<rbnfrule value="1000000000000000">←%spellout-cardinal-masculine← bilijarda[ →→];</rbnfrule>
+				<rbnfrule value="1000">hiljadu[ →→];</rbnfrule>
+				<rbnfrule value="2000">←%spellout-cardinal-feminine← $(cardinal,one{hiljada}few{hiljade}other{hiljada})$[ →→];</rbnfrule>
+				<rbnfrule value="1000000">milion[ →→];</rbnfrule>
+				<rbnfrule value="2000000">←%spellout-cardinal-masculine← $(cardinal,one{milion}few{miliona}other{miliona})$[ →→];</rbnfrule>
+				<rbnfrule value="1000000000">milijardu[ →→];</rbnfrule>
+				<rbnfrule value="2000000000">←%spellout-cardinal-feminine← $(cardinal,one{milijarda}few{milijarde}other{milijardi})$[ →→];</rbnfrule>
+				<rbnfrule value="1000000000000">bilion[ →→];</rbnfrule>
+				<rbnfrule value="2000000000000">←%spellout-cardinal-masculine← $(cardinal,one{bilion}few{biliona}other{biliona})$[ →→];</rbnfrule>
+				<rbnfrule value="1000000000000000">bilijardu[ →→];</rbnfrule>
+				<rbnfrule value="2000000000000000">←%spellout-cardinal-feminine← $(cardinal,one{bilijarda}few{bilijarde}other{bilijardi})$[ →→];</rbnfrule>
 				<rbnfrule value="1000000000000000000">=#,##0=;</rbnfrule>
 			</ruleset>
 			<ruleset type="spellout-cardinal-feminine">
@@ -109,12 +117,16 @@ CLDR data files are interpreted according to the LDML specification (http://unic
 				<rbnfrule value="200">dvesta[ →→];</rbnfrule>
 				<rbnfrule value="300">trista[ →→];</rbnfrule>
 				<rbnfrule value="400">←%spellout-cardinal-feminine←sto[ →→];</rbnfrule>
-				<rbnfrule value="1000">←%spellout-cardinal-feminine← hiljadu[ →→];</rbnfrule>
-				<rbnfrule value="2000">←%spellout-cardinal-feminine← hiljada[ →→];</rbnfrule>
-				<rbnfrule value="1000000">←%spellout-cardinal-masculine← milion[ →→];</rbnfrule>
-				<rbnfrule value="1000000000">←%spellout-cardinal-masculine← milijarda[ →→];</rbnfrule>
-				<rbnfrule value="1000000000000">←%spellout-cardinal-masculine← bilion[ →→];</rbnfrule>
-				<rbnfrule value="1000000000000000">←%spellout-cardinal-masculine← bilijarda[ →→];</rbnfrule>
+				<rbnfrule value="1000">hiljadu[ →→];</rbnfrule>
+				<rbnfrule value="2000">←← $(cardinal,one{hiljada}few{hiljade}other{hiljada})$[ →→];</rbnfrule>
+				<rbnfrule value="1000000">milion[ →→];</rbnfrule>
+				<rbnfrule value="2000000">←%spellout-cardinal-masculine← $(cardinal,one{milion}few{miliona}other{miliona})$[ →→];</rbnfrule>
+				<rbnfrule value="1000000000">milijardu[ →→];</rbnfrule>
+				<rbnfrule value="2000000000">←← $(cardinal,one{milijarda}few{milijarde}other{milijardi})$[ →→];</rbnfrule>
+				<rbnfrule value="1000000000000">bilion[ →→];</rbnfrule>
+				<rbnfrule value="2000000000000">←%spellout-cardinal-masculine← $(cardinal,one{bilion}few{biliona}other{biliona})$[ →→];</rbnfrule>
+				<rbnfrule value="1000000000000000">bilijardu[ →→];</rbnfrule>
+				<rbnfrule value="2000000000000000">←← $(cardinal,one{bilijarda}few{bilijarde}other{bilijardi})$[ →→];</rbnfrule>
 				<rbnfrule value="1000000000000000000">=#,##0=;</rbnfrule>
 			</ruleset>
 			<ruleset type="ordi" access="private">

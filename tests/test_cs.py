@@ -20,3 +20,12 @@ def test_czech():
 
     assert engine.format_number(5000).text == "pět tisíc"
     assert engine.format_number(12000).text == "dvanáct tisíc"
+
+
+def test_czech_thousands_are_masculine():
+    engine = RbnfEngine.for_language("cs")
+
+    # "tisíc" is masculine, so the multiplier is "dva", not the feminine "dvě".
+    assert engine.format_number(2000).text == "dva tisíce"
+    assert engine.format_number(22000).text == "dvacet dva tisíc"
+    assert engine.format_number(21000).text == "dvacet jeden tisíc"

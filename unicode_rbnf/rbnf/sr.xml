@@ -54,12 +54,16 @@ For terms of use, see http://www.unicode.org/copyright.html
                 <rbnfrule value="200">двеста[ →→];</rbnfrule>
                 <rbnfrule value="300">триста[ →→];</rbnfrule>
                 <rbnfrule value="400">←%spellout-cardinal-feminine←сто[ →→];</rbnfrule>
-                <rbnfrule value="1000">←%spellout-cardinal-feminine← хиљаду[ →→];</rbnfrule>
-                <rbnfrule value="2000">←%spellout-cardinal-feminine← хиљада[ →→];</rbnfrule>
-                <rbnfrule value="1000000">←%spellout-cardinal-masculine← милион[ →→];</rbnfrule>
-                <rbnfrule value="1000000000">←%spellout-cardinal-masculine← милијарда[ →→];</rbnfrule>
-                <rbnfrule value="1000000000000">←%spellout-cardinal-masculine← билион[ →→];</rbnfrule>
-                <rbnfrule value="1000000000000000">←%spellout-cardinal-masculine← билијарда[ →→];</rbnfrule>
+                <rbnfrule value="1000">хиљаду[ →→];</rbnfrule>
+                <rbnfrule value="2000">←%spellout-cardinal-feminine← $(cardinal,one{хиљада}few{хиљаде}other{хиљада})$[ →→];</rbnfrule>
+                <rbnfrule value="1000000">милион[ →→];</rbnfrule>
+                <rbnfrule value="2000000">←%spellout-cardinal-masculine← $(cardinal,one{милион}few{милиона}other{милиона})$[ →→];</rbnfrule>
+                <rbnfrule value="1000000000">милијарду[ →→];</rbnfrule>
+                <rbnfrule value="2000000000">←%spellout-cardinal-feminine← $(cardinal,one{милијарда}few{милијарде}other{милијарди})$[ →→];</rbnfrule>
+                <rbnfrule value="1000000000000">билион[ →→];</rbnfrule>
+                <rbnfrule value="2000000000000">←%spellout-cardinal-masculine← $(cardinal,one{билион}few{билиона}other{билиона})$[ →→];</rbnfrule>
+                <rbnfrule value="1000000000000000">билијарду[ →→];</rbnfrule>
+                <rbnfrule value="2000000000000000">←%spellout-cardinal-feminine← $(cardinal,one{билијарда}few{билијарде}other{билијарди})$[ →→];</rbnfrule>
                 <rbnfrule value="1000000000000000000">=#,##0=;</rbnfrule>
             </ruleset>
             <ruleset type="spellout-cardinal-neuter">
@@ -81,12 +85,16 @@ For terms of use, see http://www.unicode.org/copyright.html
                 <rbnfrule value="200">двеста[ →→];</rbnfrule>
                 <rbnfrule value="300">триста[ →→];</rbnfrule>
                 <rbnfrule value="400">←%spellout-cardinal-feminine←сто[ →→];</rbnfrule>
-                <rbnfrule value="1000">←%spellout-cardinal-feminine← хиљаду[ →→];</rbnfrule>
-                <rbnfrule value="2000">←%spellout-cardinal-feminine← хиљада[ →→];</rbnfrule>
-                <rbnfrule value="1000000">←%spellout-cardinal-masculine← милион[ →→];</rbnfrule>
-                <rbnfrule value="1000000000">←%spellout-cardinal-masculine← милијарда[ →→];</rbnfrule>
-                <rbnfrule value="1000000000000">←%spellout-cardinal-masculine← билион[ →→];</rbnfrule>
-                <rbnfrule value="1000000000000000">←%spellout-cardinal-masculine← билијарда[ →→];</rbnfrule>
+                <rbnfrule value="1000">хиљаду[ →→];</rbnfrule>
+                <rbnfrule value="2000">←%spellout-cardinal-feminine← $(cardinal,one{хиљада}few{хиљаде}other{хиљада})$[ →→];</rbnfrule>
+                <rbnfrule value="1000000">милион[ →→];</rbnfrule>
+                <rbnfrule value="2000000">←%spellout-cardinal-masculine← $(cardinal,one{милион}few{милиона}other{милиона})$[ →→];</rbnfrule>
+                <rbnfrule value="1000000000">милијарду[ →→];</rbnfrule>
+                <rbnfrule value="2000000000">←%spellout-cardinal-feminine← $(cardinal,one{милијарда}few{милијарде}other{милијарди})$[ →→];</rbnfrule>
+                <rbnfrule value="1000000000000">билион[ →→];</rbnfrule>
+                <rbnfrule value="2000000000000">←%spellout-cardinal-masculine← $(cardinal,one{билион}few{билиона}other{билиона})$[ →→];</rbnfrule>
+                <rbnfrule value="1000000000000000">билијарду[ →→];</rbnfrule>
+                <rbnfrule value="2000000000000000">←%spellout-cardinal-feminine← $(cardinal,one{билијарда}few{билијарде}other{билијарди})$[ →→];</rbnfrule>
                 <rbnfrule value="1000000000000000000">=#,##0=;</rbnfrule>
             </ruleset>
             <ruleset type="spellout-cardinal-feminine">
@@ -108,12 +116,16 @@ For terms of use, see http://www.unicode.org/copyright.html
                 <rbnfrule value="200">двеста[ →→];</rbnfrule>
                 <rbnfrule value="300">триста[ →→];</rbnfrule>
                 <rbnfrule value="400">←%spellout-cardinal-feminine←сто[ →→];</rbnfrule>
-                <rbnfrule value="1000">←%spellout-cardinal-feminine← хиљаду[ →→];</rbnfrule>
-                <rbnfrule value="2000">←%spellout-cardinal-feminine← хиљада[ →→];</rbnfrule>
-                <rbnfrule value="1000000">←%spellout-cardinal-masculine← милион[ →→];</rbnfrule>
-                <rbnfrule value="1000000000">←%spellout-cardinal-masculine← милијарда[ →→];</rbnfrule>
-                <rbnfrule value="1000000000000">←%spellout-cardinal-masculine← билион[ →→];</rbnfrule>
-                <rbnfrule value="1000000000000000">←%spellout-cardinal-masculine← билијарда[ →→];</rbnfrule>
+                <rbnfrule value="1000">хиљаду[ →→];</rbnfrule>
+                <rbnfrule value="2000">←← $(cardinal,one{хиљада}few{хиљаде}other{хиљада})$[ →→];</rbnfrule>
+                <rbnfrule value="1000000">милион[ →→];</rbnfrule>
+                <rbnfrule value="2000000">←%spellout-cardinal-masculine← $(cardinal,one{милион}few{милиона}other{милиона})$[ →→];</rbnfrule>
+                <rbnfrule value="1000000000">милијарду[ →→];</rbnfrule>
+                <rbnfrule value="2000000000">←← $(cardinal,one{милијарда}few{милијарде}other{милијарди})$[ →→];</rbnfrule>
+                <rbnfrule value="1000000000000">билион[ →→];</rbnfrule>
+                <rbnfrule value="2000000000000">←%spellout-cardinal-masculine← $(cardinal,one{билион}few{билиона}other{билиона})$[ →→];</rbnfrule>
+                <rbnfrule value="1000000000000000">билијарду[ →→];</rbnfrule>
+                <rbnfrule value="2000000000000000">←← $(cardinal,one{билијарда}few{билијарде}other{билијарди})$[ →→];</rbnfrule>
                 <rbnfrule value="1000000000000000000">=#,##0=;</rbnfrule>
             </ruleset>
             <ruleset type="ordi" access="private">
