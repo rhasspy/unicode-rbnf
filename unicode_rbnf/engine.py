@@ -15,6 +15,8 @@ from pathlib import Path
 from typing import Dict, Final, Iterable, List, Optional, Set, Tuple, Union
 from xml.etree import ElementTree as et
 
+from .plural_rules import OTHER, PluralType, get_plural_category
+
 DEFAULT_TOLERANCE: Final = 1e-8
 SKIP_RULESETS: Final = {"lenient-parse"}
 
@@ -170,50 +172,38 @@ class PluralFormatPart(RbnfRulePart):
     previous_part: Optional[RbnfRulePart] = None
     """Previous part of parser."""
 
-    def render(self, number: Union[int, float, Decimal]) -> str:
-        """Render function with value."""
-        count_zero = self.function_value.count("0")
-        name_value = str(number)[:-count_zero]
-        value = Decimal(name_value[-1:])
-        value_many = Decimal(name_value[-2:])
+    @property
+    def plural_type(self) -> PluralType:
+        """Whether this part selects a counting form or a position form."""
+        if self.function_name.startswith("ordinal"):
+            return PluralType.ORDINAL
 
-        clean_fn = self.function_name.replace("cardinal,", "").replace("ordinal,", "")
+        return PluralType.CARDINAL
 
-        zero_match = re.search(r"zero\{(.*?)\}", clean_fn)
-        zero_value = zero_match.group(1) if zero_match else ""
-        if zero_match and zero_value and value == 0:
-            return zero_value
+    def render(self, number: Union[int, float, Decimal], language: str) -> str:
+        """Render the word form that agrees with a number in this language.
 
-        one_match = re.search(r"one\{(.*?)\}", clean_fn)
-        one_value = one_match.group(1) if one_match else ""
-        if one_match and one_value and value == 1:
-            return one_value
+        Which form applies is a property of the language rather than of the
+        final digit: Slovak counts 12 as "other" because its "few" is the whole
+        integer 2-4, while Polish counts 12 as "many" and 22 as "few". The
+        category therefore comes from CLDR's rules for `language`.
+        """
+        forms: Dict[str, str] = dict(
+            re.findall(r"(\w+)\{([^{}]*)\}", self.function_name)
+        )
 
-        two_match = re.search(r"two\{(.*?)\}", clean_fn)
-        two_value = two_match.group(1) if two_match else ""
-        if two_match and two_value and value == 2:
-            return two_value
+        category = get_plural_category(language, number, self.plural_type)
+        form: Optional[str] = forms.get(category)
+        if form is None:
+            # Every CLDR language falls back to "other".
+            form = forms.get(OTHER)
 
-        few_match = re.search(r"few\{(.*?)\}", clean_fn)
-        few_value = few_match.group(1) if few_match else ""
-        if few_match and few_value and value in [2, 3, 4]:
-            return few_value
+        if form is None:
+            # A rule that omits "other" is malformed, but losing the word
+            # entirely is worse than picking the one form it does offer.
+            form = next(iter(forms.values()), "")
 
-        many_match = re.search(r"many\{(.*?)\}", clean_fn)
-        many_value = many_match.group(1) if many_match else ""
-        if (
-            many_match
-            and few_value
-            and value_many in [11, 12, 13, 14, 15, 16, 17, 18, 19]
-        ):
-            return few_value
-
-        other_match = re.search(r"other\{(.*?)\}", clean_fn)
-        other_value = other_match.group(1) if other_match else ""
-        if other_match and other_value:
-            return other_value
-
-        return many_value
+        return form
 
 
 class RbnfSpecialRule(str, Enum):
@@ -759,7 +749,17 @@ class RbnfEngine:
                     yield part.text
             elif isinstance(part, PluralFormatPart):
                 if part.function_name:
-                    yield part.render(number)
+                    # A counting form agrees with the multiplier this rule just
+                    # produced -- "shesto osemdesiattri tisic" is 683 thousand,
+                    # so the form follows 683, not 683146. An ordinal suffix
+                    # attaches to the whole number instead.
+                    plural_number: Union[int, float, Decimal] = number
+                    if (part.plural_type == PluralType.CARDINAL) and isinstance(
+                        rule.value, int
+                    ):
+                        plural_number = q
+
+                    yield part.render(plural_number, self.language)
             elif isinstance(part, SubRulePart):
                 sub_part: SubRulePart = part
 

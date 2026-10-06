@@ -2,9 +2,11 @@
 
 ## 2.4.1
 
+- Select plural forms with CLDR plural rules instead of the final digit
+  - Fixes Russian, Ukrainian, Belarusian and Polish in the 11-14 range, e.g. ru 12000 "двенадцать тысячи" -> "двенадцать тысяч"
 - Fix Slovak hundreds: 100-199 spelled out as "jednasto ..." instead of "sto ..."
 - Fix Slovak and Czech thousands: 1000-1999 spelled out as "jedna tisíc ..." instead of "tisíc ..."
-- Add Slovak and Czech tests
+- Add Slovak, Czech, Russian and plural-rule tests
 
 ## 2.4.0
 

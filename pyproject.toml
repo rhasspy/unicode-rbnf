@@ -48,4 +48,4 @@ include-package-data = true
 include = ["unicode_rbnf"]
 
 [tool.setuptools.package-data]
-unicode_rbnf = ["rbnf/*.xml"]
+unicode_rbnf = ["rbnf/*.xml", "*.xml"]
