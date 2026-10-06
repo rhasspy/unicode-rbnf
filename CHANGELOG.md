@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.4.1
+
+- Select plural forms with CLDR plural rules instead of the final digit
+  - Fixes Russian, Ukrainian, Belarusian and Polish in the 11-14 range, e.g. ru 12000 "двенадцать тысячи" -> "двенадцать тысяч"
+- Fix Slovak hundreds: 100-199 spelled out as "jednasto ..." instead of "sto ..."
+- Fix Slovak and Czech thousands: 1000-1999 spelled out as "jedna tisíc ..." instead of "tisíc ..."
+- Fix Czech thousands gender: 2000 "dvě tisíce" -> "dva tisíce" ("tisíc" is masculine)
+- Fix Serbian (sr, sr_Latn): a spoken multiplier of one, and missing agreement on the counted noun
+  - 1000 "једна хиљаду" -> "хиљаду", 2000000 "два милион" -> "два милиона"
+- Fix Romanian millions: "unu milion" -> "un milion"
+- Add Slovak, Czech, Russian, Serbian, Romanian and plural-rule tests
+
 ## 2.4.0
 
 - Render digit-by-digit after decimal point (0.123 -> zero point one two three)

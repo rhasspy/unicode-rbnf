@@ -47,3 +47,13 @@ def test_polish():
         engine.format_number(1999, FormatPurpose.YEAR).text
         == "tysiąc dziewięćset dziewięćdziesiąt dziewięć"
     )
+
+
+def test_polish_teens_agreement():
+    engine = RbnfEngine.for_language("pl")
+
+    # Polish puts the teens in "many" and 22 back in "few".
+    assert engine.format_number(12000).text == "dwanaście tysięcy"
+    assert engine.format_number(13000).text == "trzynaście tysięcy"
+    assert engine.format_number(22000).text == "dwadzieścia dwa tysiące"
+    assert engine.format_number(112000).text == "sto dwanaście tysięcy"
