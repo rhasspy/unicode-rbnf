@@ -725,7 +725,14 @@ class RbnfEngine:
 
         if isinstance(rule.value, RbnfSpecialRule):
             if rule.value == RbnfSpecialRule.NEGATIVE_NUMBER:
-                r = int(-number)
+                magnitude = -number
+                if magnitude == int(magnitude):
+                    r = int(magnitude)
+                else:
+                    # Preserve the fractional part (e.g. -1.5 -> "minus one
+                    # point five") by recursing on the full magnitude instead
+                    # of truncating it to an int.
+                    r = magnitude
             elif rule.value == RbnfSpecialRule.IMPROPER_FRACTION:
                 dec_num = Decimal(str(number))
                 q_str, r_digits = str(dec_num).split(".", maxsplit=1)
