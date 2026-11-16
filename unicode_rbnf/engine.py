@@ -720,7 +720,8 @@ class RbnfEngine:
             raise NoRuleForNumberError(f"No rule for {number} in {ruleset_name}")
 
         q: int = 0
-        r: int = 0
+        # Only a negative number's remainder can be fractional (its magnitude)
+        r: Union[int, float, Decimal] = 0
         r_digits: Optional[str] = None
 
         if isinstance(rule.value, RbnfSpecialRule):

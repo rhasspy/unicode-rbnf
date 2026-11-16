@@ -31,6 +31,17 @@ def test_english():
 
     # Special rules
     assert engine.format_number(-1).text == "minus one"
+    assert engine.format_number(-2.0).text == "minus two"
+
+    # Negative fractions keep their fractional part
+    assert engine.format_number(-1.5).text == "minus one point five"
+    assert engine.format_number(-0.5).text == "minus zero point five"
+    assert engine.format_number("-10.75").text == "minus ten point seven five"
+    assert (
+        engine.format_number(-1234.5).text
+        == "minus one thousand two hundred thirty-four point five"
+    )
+
     assert engine.format_number(float("nan")).text == "not a number"
     assert engine.format_number(float("inf")).text == "infinity"
 
