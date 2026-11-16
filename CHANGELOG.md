@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.5.0
+
+- Speak decimals as fractions where CLDR says to, like ICU does
+  - Russian: 1.5 "одна  целыхноль десятых" -> "одна целая пять десятых", 0.5 -> "пять десятых"
+  - Polish: 14.89 "czternaście przecinek zero zero" -> "czternaście przecinek osiemdziesiąt dziewięć"
+  - Kazakh and Kyrgyz: 1.5 "бір бүтін оннан нөл" -> "бір бүтін оннан бес"
+- Keep the fractional part of negative numbers: -1.5 "minus one" -> "minus one point five" (https://github.com/rhasspy/unicode-rbnf/pull/13)
+- Fix crash on numbers small enough to print in scientific notation (1e-7)
+- Fix crash on negative infinity: -inf -> "minus infinity"
+- Keep a plural form inside an optional [...] group with its substitution, and text after a plural form in order
+- Remove doubled and trailing spaces from output (Arabic ordinals, Arabic and Hebrew decimals)
+- Add Arabic, Kazakh and Russian tests, and turn on the Polish decimal tests
+
 ## 2.4.1
 
 - Select plural forms with CLDR plural rules instead of the final digit

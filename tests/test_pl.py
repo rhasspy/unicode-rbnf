@@ -32,15 +32,19 @@ def test_polish():
     # Special rules
     assert engine.format_number(-1).text == "minus jeden"
     assert engine.format_number(-14).text == "minus czternaście"
-    # assert engine.format_number(-14.6).text == "minus czternaście przecinek sześć"
-    # assert engine.format_number(-14.89).text == "minus czternaście przecinek osiemdziesiąt dziewięć"
+    assert engine.format_number(-14.6).text == "minus czternaście przecinek sześć"
+    assert (
+        engine.format_number(-14.89).text
+        == "minus czternaście przecinek osiemdziesiąt dziewięć"
+    )
 
     # assert engine.format_number(float("nan")).text == "nie jest liczbą"
     # assert engine.format_number(float("inf")).text == "nieskończona"
 
     # Fractions
-    # assert engine.format_number(3.14).text == "trzy przecinek czternaście"
-    # assert engine.format_number("5.3").text == "pięć przecinek trzy"
+    assert engine.format_number(3.14).text == "trzy przecinek czternaście"
+    assert engine.format_number("5.3").text == "pięć przecinek trzy"
+    assert engine.format_number(14.05).text == "czternaście przecinek zero pięć"
 
     # Years
     assert (
