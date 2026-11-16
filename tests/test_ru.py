@@ -27,3 +27,25 @@ def test_russian_millions_agreement():
     assert engine.format_number(1000000).text == "один миллион"
     assert engine.format_number(2000000).text == "два миллиона"
     assert engine.format_number(5000000).text == "пять миллионов"
+
+
+def test_russian_fractions():
+    """Decimals are spoken as a fraction: "one whole and five tenths"."""
+    engine = RbnfEngine.for_language("ru")
+
+    assert engine.format_number(1.5).text == "одна целая пять десятых"
+    assert engine.format_number(2.5).text == "две целых пять десятых"
+    assert engine.format_number(1.25).text == "одна целая двадцать пять сотых"
+    assert engine.format_number(0.1).text == "одна десятая"
+
+    # The whole part is optional, so zero is left out
+    assert engine.format_number(0.5).text == "пять десятых"
+    assert engine.format_number(0.05).text == "пять сотых"
+
+    assert engine.format_number(-1.5).text == "минус одна целая пять десятых"
+    assert (
+        engine.format_number(
+            1.5, ruleset_names=["spellout-cardinal-feminine-genitive"]
+        ).text
+        == "одной целой пяти десятых"
+    )

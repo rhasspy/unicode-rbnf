@@ -22,6 +22,7 @@ SKIP_RULESETS: Final = {"lenient-parse"}
 
 _LANG_DIR = Path(__file__).parent / "rbnf"
 _LOGGER = logging.getLogger()
+_MULTIPLE_SPACES: Final = re.compile(r" {2,}")
 
 # Don't load these XML files
 _EXCLUDED_XML_NAMES: Set[str] = {"root", "es_419", "en_001", "nb"}
@@ -114,6 +115,9 @@ class TextRulePart(RbnfRulePart):
     text: str
     """Literal text to insert."""
 
+    optional_of: Optional["SubRulePart"] = None
+    """Substitution whose [optional] group this text belongs to."""
+
 
 class SubType(str, Enum):
     """Type of substitution."""
@@ -147,6 +151,9 @@ class SubRulePart(RbnfRulePart):
     format_pattern: Optional[str] = None
     """DecimalFormat pattern (e.g., #,##0.00)."""
 
+    with_zeros: bool = False
+    """Speak leading zeros of a fraction's numerator (<<< in a fraction ruleset)."""
+
 
 @dataclass
 class ReplaceRulePart(RbnfRulePart):
@@ -171,6 +178,9 @@ class PluralFormatPart(RbnfRulePart):
 
     previous_part: Optional[RbnfRulePart] = None
     """Previous part of parser."""
+
+    optional_of: Optional["SubRulePart"] = None
+    """Substitution whose [optional] group this plural format belongs to."""
 
     @property
     def plural_type(self) -> PluralType:
@@ -322,6 +332,13 @@ class RbnfRule:
                     part = SubRulePart(SubType.QUOTIENT, is_optional=is_sub_optional)
                     rule.parts.append(part)
                 elif state in {ParseState.SUB_QUOTIENT, ParseState.SUB_RULESET_NAME}:
+                    if next_c in ("<", "←"):
+                        # <%ruleset<< in a fraction ruleset speaks the
+                        # numerator's leading zeros (0.05 -> "zero five").
+                        assert isinstance(part, SubRulePart)
+                        part.with_zeros = True
+                        skip_next_char = True
+
                     if is_sub_optional:
                         state = ParseState.SUB_OPTIONAL_AFTER
                     else:
@@ -355,9 +372,18 @@ class RbnfRule:
                 elif state == ParseState.SUB_PLURAL_FORMAT and text[x - 1] == ")":
                     assert isinstance(part, PluralFormatPart)
                     assert part.previous_state is not None
+                    if part.previous_state == ParseState.SUB_OPTIONAL_AFTER:
+                        # [<< $(cardinal,...)$ ] is dropped with its substitution
+                        assert isinstance(part.previous_part, SubRulePart)
+                        part.optional_of = part.previous_part
+
                     rule.parts.append(part)
                     state = part.previous_state
                     part = part.previous_part
+                    if isinstance(part, TextRulePart):
+                        # Text after the plural format must come after it,
+                        # not be appended to the text before it.
+                        part = None
                 else:
                     raise ValueError(f"Got {c} in {state} fot text: {text} (x: {x})")
             elif c == "[":
@@ -393,7 +419,21 @@ class RbnfRule:
             elif state == ParseState.SUB_OPTIONAL_AFTER:
                 # [... after]
                 assert isinstance(part, SubRulePart)
-                part.text_after += c
+                last_part = rule.parts[-1]
+                if last_part is part:
+                    part.text_after += c
+                else:
+                    # Text after a plural format inside [...] must stay in
+                    # order, and still belongs to the optional group.
+                    if not (
+                        isinstance(last_part, TextRulePart)
+                        and (last_part.optional_of is part)
+                    ):
+                        last_part = TextRulePart("", optional_of=part)
+                        rule.parts.append(last_part)
+
+                    assert isinstance(last_part, TextRulePart)
+                    last_part.text += c
             elif state == ParseState.SUB_PLURAL_FORMAT:
                 assert isinstance(part, PluralFormatPart)
                 if c not in ["(", ")"]:
@@ -674,6 +714,10 @@ class RbnfEngine:
                     # https://en.wikipedia.org/wiki/Soft_hyphen
                     number_str = number_str.replace("\xad", "")
 
+                # Rules joined at their edges can leave doubled or trailing
+                # spaces (Arabic ordinals, Hebrew decimals).
+                number_str = _MULTIPLE_SPACES.sub(" ", number_str).strip()
+
                 number_strs[ruleset_name] = number_str
             except (NoRuleForNumberError, RulesetNotFoundError):
                 pass  # skip ruleset
@@ -727,16 +771,17 @@ class RbnfEngine:
         if isinstance(rule.value, RbnfSpecialRule):
             if rule.value == RbnfSpecialRule.NEGATIVE_NUMBER:
                 magnitude = -number
-                if magnitude == int(magnitude):
-                    r = int(magnitude)
-                else:
+                if isinf(magnitude) or (magnitude != int(magnitude)):
                     # Preserve the fractional part (e.g. -1.5 -> "minus one
                     # point five") by recursing on the full magnitude instead
-                    # of truncating it to an int.
+                    # of truncating it to an int. Infinity has no int at all.
                     r = magnitude
+                else:
+                    r = int(magnitude)
             elif rule.value == RbnfSpecialRule.IMPROPER_FRACTION:
+                # Fixed-point, since str() gives "1E-7" for small numbers
                 dec_num = Decimal(str(number))
-                q_str, r_digits = str(dec_num).split(".", maxsplit=1)
+                q_str, r_digits = format(dec_num, "f").split(".", maxsplit=1)
                 q = int(q_str)
             elif rule.value in {RbnfSpecialRule.NOT_A_NUMBER, RbnfSpecialRule.INFINITY}:
                 # Should just be text substitutions
@@ -751,7 +796,17 @@ class RbnfEngine:
             divisor = power_above if (number >= power_above) else power_below
             q, r = divmod(int(number), divisor)
 
+        # Substitution that was left out, along with its [optional] group
+        skipped_sub: Optional[SubRulePart] = None
+
         for part in rule.parts:
+            if (
+                isinstance(part, (TextRulePart, PluralFormatPart))
+                and (part.optional_of is not None)
+                and (part.optional_of is skipped_sub)
+            ):
+                continue
+
             if isinstance(part, TextRulePart):
                 if part.text:
                     yield part.text
@@ -762,8 +817,10 @@ class RbnfEngine:
                     # so the form follows 683, not 683146. An ordinal suffix
                     # attaches to the whole number instead.
                     plural_number: Union[int, float, Decimal] = number
-                    if (part.plural_type == PluralType.CARDINAL) and isinstance(
-                        rule.value, int
+                    # In x.x, it agrees with the integer part ("одна целая").
+                    if (part.plural_type == PluralType.CARDINAL) and (
+                        isinstance(rule.value, int)
+                        or (rule.value == RbnfSpecialRule.IMPROPER_FRACTION)
                     ):
                         plural_number = q
 
@@ -772,12 +829,14 @@ class RbnfEngine:
                 sub_part: SubRulePart = part
 
                 if part.type == SubType.QUOTIENT:
-                    if (
-                        (q == 0)
-                        and (sub_part.is_optional or (part.ruleset_name is None))
-                        and (not r_digits)
+                    if (q == 0) and (
+                        sub_part.is_optional
+                        or ((part.ruleset_name is None) and (not r_digits))
                     ):
-                        # Rulesets can use quotients of zero
+                        # Rulesets can use quotients of zero.
+                        # An [optional] integer part is left out of 0.5, but a
+                        # required one is spoken ("zero point five").
+                        skipped_sub = sub_part
                         continue
 
                     if part.text_before:
@@ -796,6 +855,27 @@ class RbnfEngine:
                         and (not r_digits)
                     ):
                         # Rulesets can use remainders of zero
+                        skipped_sub = sub_part
+                        continue
+
+                    fraction_words: Optional[List[str]] = None
+                    if (
+                        r_digits
+                        and part.ruleset_name
+                        and (part.ruleset_name != ruleset_name)
+                    ):
+                        # Like ICU, a fractional part sent to another ruleset
+                        # is spoken as a fraction (five tenths), not digits.
+                        fraction_words = self._format_fraction(
+                            r_digits, part.ruleset_name, tolerance=tolerance
+                        )
+
+                    if fraction_words is not None:
+                        if part.text_before:
+                            yield part.text_before
+                        yield from fraction_words
+                        if part.text_after:
+                            yield part.text_after
                         continue
 
                     if r_digits:
@@ -831,6 +911,78 @@ class RbnfEngine:
                     ruleset_name=part.ruleset_name,
                     tolerance=tolerance,
                 )
+
+    def _format_fraction(
+        self,
+        digits: str,
+        ruleset_name: str,
+        tolerance: float = DEFAULT_TOLERANCE,
+    ) -> Optional[List[str]]:
+        """Speak the digits after a decimal point with a fraction ruleset.
+
+        A fraction ruleset's rules are keyed by denominator, so 0.25 uses the
+        100 rule with a numerator of 25 ("двадцать пять сотых"). Returns None
+        when the ruleset cannot express the fraction, so the caller can fall
+        back to digit-by-digit.
+        """
+        ruleset = self.rulesets.get(ruleset_name)
+        if ruleset is None:
+            raise RulesetNotFoundError(f"No ruleset: {ruleset_name}")
+
+        digits = digits.rstrip("0")
+        if not digits:
+            return None
+
+        numerator = int(digits)
+        denominator = 10 ** len(digits)
+        rule: Optional[RbnfRule] = None
+        for rule_value in sorted(ruleset.numeric_rules):
+            if (rule_value >= denominator) and ((rule_value % denominator) == 0):
+                rule = ruleset.numeric_rules[rule_value]
+                numerator *= rule_value // denominator
+                denominator = rule_value
+                break
+
+        if rule is None:
+            return None
+
+        words: List[str] = []
+        for part in rule.parts:
+            if isinstance(part, TextRulePart):
+                words.append(part.text)
+            elif isinstance(part, PluralFormatPart):
+                if part.function_name:
+                    words.append(part.render(numerator, self.language))
+            elif (
+                isinstance(part, SubRulePart)
+                and (part.type == SubType.QUOTIENT)
+                and part.ruleset_name
+                and (part.format_pattern is None)
+            ):
+                words.append(part.text_before)
+                if part.with_zeros:
+                    # 0.05 -> "zero five"
+                    num_zeros = (len(str(denominator)) - 1) - len(str(numerator))
+                    for _ in range(num_zeros):
+                        words.extend(
+                            self.iter_format_number(
+                                0, ruleset_name=part.ruleset_name, tolerance=tolerance
+                            )
+                        )
+                        words.append(" ")
+
+                words.extend(
+                    self.iter_format_number(
+                        numerator, ruleset_name=part.ruleset_name, tolerance=tolerance
+                    )
+                )
+                words.append(part.text_after)
+            else:
+                # Digit patterns (<0<) and other substitutions are not
+                # spoken fractions.
+                return None
+
+        return words
 
 
 def fractional_to_int(frac_part: float, tolerance: float = DEFAULT_TOLERANCE) -> int:

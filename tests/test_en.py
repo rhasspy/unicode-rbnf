@@ -44,11 +44,18 @@ def test_english():
 
     assert engine.format_number(float("nan")).text == "not a number"
     assert engine.format_number(float("inf")).text == "infinity"
+    assert engine.format_number(float("-inf")).text == "minus infinity"
 
     # Fractions
     assert engine.format_number(3.14).text == "three point one four"
     assert engine.format_number("5.3").text == "five point three"
     assert engine.format_number(0.0123).text == "zero point zero one two three"
+
+    # Small enough that str() would give scientific notation (1e-07)
+    assert (
+        engine.format_number(1e-7).text
+        == "zero point zero zero zero zero zero zero one"
+    )
 
     # Ordinals
     assert engine.format_number(20, FormatPurpose.ORDINAL).text == "twentieth"
