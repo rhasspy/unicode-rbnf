@@ -65,3 +65,7 @@ def test_english():
 
     # Years
     assert engine.format_number(1999, FormatPurpose.YEAR).text == "nineteen ninety-nine"
+
+    # At 1e18 CLDR falls back to the grouped digits (=#,##0=) once English runs
+    # out of words, instead of failing with no rule.
+    assert engine.format_number(10**18).text == "1,000,000,000,000,000,000"
