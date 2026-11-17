@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Dict, Final, Iterable, List, Optional, Set, Tuple, Union
 from xml.etree import ElementTree as et
 
+from .decimal_format import format_decimal
 from .plural_rules import OTHER, PluralType, get_plural_category
 
 DEFAULT_TOLERANCE: Final = 1e-8
@@ -23,6 +24,11 @@ SKIP_RULESETS: Final = {"lenient-parse"}
 _LANG_DIR = Path(__file__).parent / "rbnf"
 _LOGGER = logging.getLogger()
 _MULTIPLE_SPACES: Final = re.compile(r" {2,}")
+
+# A =...= replacement whose target is a DecimalFormat pattern (e.g. =#,##0=)
+# rather than a ruleset name. Patterns contain only #, 0, grouping commas and
+# a decimal point; ruleset names always have letters (spellout-numbering).
+_DECIMAL_FORMAT_PATTERN: Final = re.compile(r"^[#0,.]+$")
 
 # Don't load these XML files
 _EXCLUDED_XML_NAMES: Set[str] = {"root", "es_419", "en_001", "nb"}
@@ -906,11 +912,18 @@ class RbnfEngine:
                     if part.text_after:
                         yield part.text_after
             elif isinstance(part, ReplaceRulePart):
-                yield from self.iter_format_number(
-                    number,
-                    ruleset_name=part.ruleset_name,
-                    tolerance=tolerance,
-                )
+                if _DECIMAL_FORMAT_PATTERN.match(part.ruleset_name):
+                    # =#,##0= emits the number through a DecimalFormat pattern,
+                    # not another ruleset. CLDR uses this as the fallback once a
+                    # language runs out of words (en at 1e18) and for digit forms
+                    # such as Hindi's digits-ordinal ("7" -> "7वाँ").
+                    yield format_decimal(number, part.ruleset_name)
+                else:
+                    yield from self.iter_format_number(
+                        number,
+                        ruleset_name=part.ruleset_name,
+                        tolerance=tolerance,
+                    )
 
     def _format_fraction(
         self,

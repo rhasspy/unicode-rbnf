@@ -100,3 +100,18 @@ def test_parse_remainder_whitespace():
             SubRulePart(SubType.REMAINDER, text_before=" "),
         ],
     )
+
+
+def test_replace_with_decimal_format_pattern():
+    # =#,##0= emits the number through a DecimalFormat pattern, not a ruleset.
+    # CLDR uses this as a fallback once a language runs out of words and for
+    # digit-based ordinals (e.g. Hindi "7" -> "7वाँ"). The pattern must not be
+    # looked up as a (non-existent) ruleset.
+    engine = RbnfEngine("en")
+    engine.add_rule(0, "=#,##0=th;", "digits-ordinal")
+
+    assert engine.format_number(7, ruleset_names=["digits-ordinal"]).text == "7th"
+    assert (
+        engine.format_number(1234567, ruleset_names=["digits-ordinal"]).text
+        == "1,234,567th"
+    )
