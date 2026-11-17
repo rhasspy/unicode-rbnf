@@ -115,3 +115,12 @@ def test_replace_with_decimal_format_pattern():
         engine.format_number(1234567, ruleset_names=["digits-ordinal"]).text
         == "1,234,567th"
     )
+
+
+def test_replace_with_indian_grouping_pattern():
+    # Hindi digits-ordinal uses =#,##,##0=, which groups lakh/crore style.
+    engine = RbnfEngine.for_language("hi")
+    assert (
+        engine.format_number(1234567, ruleset_names=["digits-ordinal-masculine"]).text
+        == "12,34,567वाँ"
+    )
