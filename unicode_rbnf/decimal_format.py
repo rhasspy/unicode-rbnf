@@ -4,7 +4,45 @@ See: https://unicode-org.github.io/icu-docs/apidoc/released/icu4c/classicu_1_1De
 """
 
 from decimal import Decimal
-from typing import Union
+from typing import Optional, Tuple, Union
+
+
+def _grouping_sizes(integer_pattern: str) -> Optional[Tuple[int, int]]:
+    """Return (primary, secondary) grouping sizes from an integer pattern.
+
+    The primary size is the number of digits after the last comma; the
+    secondary size is the number of digits between the last two commas, or
+    the primary size if there is only one comma. For example, "#,##0" is
+    (3, 3) and the Indian "#,##,##0" is (3, 2).
+    """
+    groups = integer_pattern.split(",")
+    if len(groups) < 2:
+        return None
+
+    primary = len(groups[-1])
+    secondary = len(groups[-2]) if len(groups) > 2 else primary
+    if (primary < 1) or (secondary < 1):
+        return None
+
+    return primary, secondary
+
+
+def _apply_grouping(digits: str, primary: int, secondary: int) -> str:
+    """Insert grouping commas into a string of digits (with optional sign)."""
+    sign = ""
+    if digits and (digits[0] in "+-"):
+        sign, digits = digits[0], digits[1:]
+
+    if len(digits) <= primary:
+        return sign + digits
+
+    groups = [digits[-primary:]]
+    digits = digits[:-primary]
+    while digits:
+        groups.append(digits[-secondary:])
+        digits = digits[:-secondary]
+
+    return sign + ",".join(reversed(groups))
 
 
 def format_decimal(value: Union[int, float, str, Decimal], pattern: str) -> str:
@@ -15,8 +53,8 @@ def format_decimal(value: Union[int, float, str, Decimal], pattern: str) -> str:
     else:
         integer_part, fractional_part = pattern, ""
 
-    # Determine grouping (e.g., thousands separator)
-    grouping = "," in integer_part
+    # Determine grouping (e.g., thousands or Indian lakh/crore separators)
+    grouping = _grouping_sizes(integer_part)
     min_integer_digits = integer_part.replace(",", "").count("0")
 
     # Determine the number of decimal places
@@ -40,8 +78,7 @@ def format_decimal(value: Union[int, float, str, Decimal], pattern: str) -> str:
 
     # Apply grouping
     if grouping:
-        # pylint: disable=consider-using-f-string
-        integer_value = "{:,}".format(int(integer_value))
+        integer_value = _apply_grouping(integer_value, *grouping)
 
     # Combine integer and fractional parts
     if min_fraction_digits > 0:

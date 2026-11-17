@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Emit digits for `=#,##0=` style replace rules instead of failing (en 1e18 -> "1,000,000,000,000,000,000", hi `digits-ordinal-masculine` 7 -> "7वाँ") (https://github.com/rhasspy/unicode-rbnf/pull/15)
+- Use the grouping sizes from the DecimalFormat pattern, so Indian `#,##,##0` gives "12,34,567" instead of "1,234,567"
+
 ## 2.5.0
 
 - Speak decimals as fractions where CLDR says to, like ICU does
