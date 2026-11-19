@@ -124,3 +124,55 @@ def test_replace_with_indian_grouping_pattern():
         engine.format_number(1234567, ruleset_names=["digits-ordinal-masculine"]).text
         == "12,34,567वाँ"
     )
+
+
+def test_divisor_uses_highest_power_not_leading_digit():
+    # A rule whose base value has a non-zero digit after the first (e.g. 2001,
+    # the "<< thousand >>" rule many languages use for 2000-2999) must still
+    # divide on the power of the radix below it -- 1000 here, not 10000. ICU
+    # derives the divisor as the highest radix power <= the rule's base value
+    # (NFRule::expectedExponent). Deriving it from a "leading digit forced to 1"
+    # proxy turned 2001 into 1001, whose ceil(log10) is 4, so 99999 divided by
+    # 10000 and its quotient became 9 ("nine thousand") instead of 99.
+    engine = RbnfEngine("en")
+    for value, text in [
+        (0, "zero"),
+        (1, "one"),
+        (2, "two"),
+        (3, "three"),
+        (4, "four"),
+        (5, "five"),
+        (6, "six"),
+        (7, "seven"),
+        (8, "eight"),
+        (9, "nine"),
+    ]:
+        engine.add_rule(value, f"{text};", "r")
+
+    engine.add_rule(10, "←←ty[-→→];", "r")
+    engine.add_rule(100, "←← hundred[ →→];", "r")
+    engine.add_rule(1000, "thousand[ →→];", "r")
+    engine.add_rule(2000, "←← thousand[ →→];", "r")
+    engine.add_rule(2001, "←← thousand[ →→];", "r")
+
+    # 99999 lands on the 2001 rule; the quotient must be 99, not 9.
+    assert (
+        engine.format_number(99999, ruleset_names=["r"]).text
+        == "ninety-nine thousand nine hundred ninety-nine"
+    )
+
+
+def test_divisor_does_not_mutate_cached_rule():
+    # The divisor was computed by writing a normalized value back onto the
+    # shared rule object (rule.value = int("1" + ...)). The rule is parsed once
+    # and cached, so formatting one number corrupted the value seen by the next.
+    engine = RbnfEngine("en")
+    for value, text in [(0, "zero"), (1, "one"), (2, "two"), (3, "three")]:
+        engine.add_rule(value, f"{text};", "r")
+    engine.add_rule(100, "←← hundred[ →→];", "r")
+    rule_300 = engine.add_rule(300, "←← hundred[ →→];", "r")
+    assert rule_300 is not None
+
+    engine.format_number(321, ruleset_names=["r"])
+    # Formatting must not have rewritten the rule's own base value.
+    assert rule_300.value == 300
