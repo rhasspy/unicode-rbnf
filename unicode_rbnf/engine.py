@@ -10,7 +10,7 @@ from bisect import bisect_left
 from dataclasses import dataclass, field
 from decimal import Decimal
 from enum import Enum, IntFlag, auto
-from math import ceil, floor, isinf, isnan, log
+from math import isinf, isnan
 from pathlib import Path
 from typing import Dict, Final, Iterable, List, Optional, Set, Tuple, Union
 from xml.etree import ElementTree as et
@@ -795,11 +795,14 @@ class RbnfEngine:
             else:
                 _LOGGER.warning("Unhandled special rule: %s", rule.value)
         elif rule.value > 0:
-            if len(str(rule.value)) > 1 and str(rule.value)[0] != "1":
-                rule.value = int("1" + str(rule.value)[1:])
-            power_below = rule.radix ** int(floor(log(rule.value, rule.radix)))
-            power_above = rule.radix ** int(ceil(log(rule.value, rule.radix)))
-            divisor = power_above if (number >= power_above) else power_below
+            # ICU divisor: the largest power of the radix that is <= the rule's
+            # base value. A rule like 2001 (<<mila<< in Italian) splits on 1000,
+            # not 10000. Computed by integer multiplication so exact powers such
+            # as 1000 are not pushed up by log()'s float error, and without
+            # mutating the shared rule.value (the rule is cached and reused).
+            divisor = 1
+            while (divisor * rule.radix) <= rule.value:
+                divisor *= rule.radix
             q, r = divmod(int(number), divisor)
 
         # Substitution that was left out, along with its [optional] group
