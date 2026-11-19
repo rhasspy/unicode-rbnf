@@ -4,6 +4,8 @@
 
 - Emit digits for `=#,##0=` style replace rules instead of failing (en 1e18 -> "1,000,000,000,000,000,000", hi `digits-ordinal-masculine` 7 -> "7वाँ") (https://github.com/rhasspy/unicode-rbnf/pull/15)
 - Use the grouping sizes from the DecimalFormat pattern, so Indian `#,##,##0` gives "12,34,567" instead of "1,234,567"
+- Split numbers on the largest power of the radix at or below the rule's value, like ICU, and stop formatting from rewriting cached rules (it ordinal 99999 "novemilanovemila..." -> "novantanovemila...", also hu and vec ordinals) (https://github.com/rhasspy/unicode-rbnf/pull/17)
+- Reject a rule radix below 2 instead of hanging while formatting
 
 ## 2.5.0
 

@@ -251,6 +251,12 @@ class RbnfRule:
     radix: int = 10
     """Radix used when calculating divisor."""
 
+    def __post_init__(self) -> None:
+        # The divisor is the largest power of the radix <= the rule's value,
+        # which only exists (and is only found in finite time) for radix >= 2.
+        if self.radix < 2:
+            raise ValueError(f"Rule radix must be at least 2, got {self.radix}")
+
     @staticmethod
     def parse(value_str: str, text: str, radix: int = 10) -> "Optional[RbnfRule]":
         """Parse RBNF rule for a value."""
@@ -265,12 +271,14 @@ class RbnfRule:
             rule = RbnfRule(value=RbnfSpecialRule.INFINITY)
         else:
             try:
-                rule = RbnfRule(value=int(value_str), radix=radix)
+                value = int(value_str)
             except ValueError:
                 _LOGGER.debug(
                     "Unrecognized special rule: value=%s, text=%s", value_str, text
                 )
                 return None
+
+            rule = RbnfRule(value=value, radix=radix)
 
         state = ParseState.TEXT
         part: Optional[RbnfRulePart] = None

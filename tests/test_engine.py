@@ -176,3 +176,11 @@ def test_divisor_does_not_mutate_cached_rule():
     engine.format_number(321, ruleset_names=["r"])
     # Formatting must not have rewritten the rule's own base value.
     assert rule_300.value == 300
+
+
+def test_invalid_radix_is_rejected():
+    # The divisor loop needs radix >= 2; a smaller radix would never terminate.
+    engine = RbnfEngine("en")
+    for radix in (0, 1, -10):
+        with pytest.raises(ValueError):
+            engine.add_rule("100", "hundred;", "r", radix=radix)
