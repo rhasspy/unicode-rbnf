@@ -19,6 +19,26 @@ def test_format_decimal_indian_grouping() -> None:
     assert format_decimal(-1234567, "#,##,##0") == "-12,34,567"
 
 
+def test_format_decimal_optional_fraction_digits() -> None:
+    # A "#" after the decimal point is an optional digit: it is shown when the
+    # rounded value has a non-zero digit there and dropped otherwise. A "0" is
+    # always shown. CLDR's x.x ordinal rule uses "#,##0.#", so 1.5 must keep its
+    # ".5" (previously the whole fraction was dropped, giving "1").
+    assert format_decimal(1.5, "#,##0.#") == "1.5"
+    assert format_decimal(0.5, "#,##0.#") == "0.5"
+    assert format_decimal(2.56, "#,##0.#") == "2.6"
+    assert format_decimal(1.0, "#,##0.#") == "1"
+    assert format_decimal(100.0, "#,##0.#") == "100"
+    assert format_decimal(-1.5, "#,##0.#") == "-1.5"
+    # Two optional places keep as many non-zero digits as are present.
+    assert format_decimal(1.5, "#,##0.##") == "1.5"
+    assert format_decimal(2.56, "#,##0.##") == "2.56"
+    assert format_decimal(1.0, "#,##0.##") == "1"
+    # A required "0" place is always shown, even for a whole number.
+    assert format_decimal(1.0, "#,##0.0") == "1.0"
+    assert format_decimal(100.0, "#,##0.0") == "100.0"
+
+
 def test_format_decimal_grouping_edge_cases() -> None:
     assert format_decimal(1234567, "#,##0") == "1,234,567"
     assert format_decimal(-1234567, "#,##0") == "-1,234,567"

@@ -80,9 +80,14 @@ def format_decimal(value: Union[int, float, str, Decimal], pattern: str) -> str:
     if grouping:
         integer_value = _apply_grouping(integer_value, *grouping)
 
-    # Combine integer and fractional parts
+    # Combine integer and fractional parts. A "0" in the pattern's fractional
+    # part is a required digit; a "#" is optional and only shown when non-zero.
+    # So "#,##0.#" keeps the ".5" of 1.5 but drops the fraction of 1.0, while
+    # "#,##0.0" always keeps one place (1.0 -> "1.0").
     if min_fraction_digits > 0:
         fractional_value = fractional_value.ljust(min_fraction_digits, "0")
+
+    if fractional_value:
         formatted_number = f"{integer_value}.{fractional_value}"
     else:
         formatted_number = integer_value
