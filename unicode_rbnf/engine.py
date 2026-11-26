@@ -848,11 +848,19 @@ class RbnfEngine:
                 if part.type == SubType.QUOTIENT:
                     if (q == 0) and (
                         sub_part.is_optional
-                        or ((part.ruleset_name is None) and (not r_digits))
+                        or (
+                            (part.ruleset_name is None)
+                            and (not r_digits)
+                            and (0 not in ruleset.numeric_rules)
+                        )
                     ):
                         # Rulesets can use quotients of zero.
                         # An [optional] integer part is left out of 0.5, but a
                         # required one is spoken ("zero point five").
+                        # A bare (recurse-into-current-ruleset) required
+                        # substitution of 0 is only dropped when the ruleset has
+                        # no exact rule for 0. When it does, ICU recurses so that
+                        # rule's text is spoken (e.g. the scale word "míle").
                         skipped_sub = sub_part
                         continue
 
@@ -868,10 +876,19 @@ class RbnfEngine:
                 elif part.type == SubType.REMAINDER:
                     if (
                         (r == 0)
-                        and (sub_part.is_optional or (part.ruleset_name is None))
+                        and (
+                            sub_part.is_optional
+                            or (
+                                (part.ruleset_name is None)
+                                and (0 not in ruleset.numeric_rules)
+                            )
+                        )
                         and (not r_digits)
                     ):
-                        # Rulesets can use remainders of zero
+                        # Rulesets can use remainders of zero.
+                        # A bare required substitution of 0 is only dropped when
+                        # the ruleset has no exact rule for 0; when it does, ICU
+                        # recurses so that rule's text is spoken.
                         skipped_sub = sub_part
                         continue
 
